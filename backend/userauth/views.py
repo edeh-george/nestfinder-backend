@@ -6,9 +6,11 @@ from django.contrib.auth import get_user_model
 from . serializers import (
     UserSignUpSerializer,
     UserPasswordResetSerializer)
+from utils.send_mail import send_email
 
 
 User = get_user_model()
+
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request: Request, *args, **kwargs) -> Response:
@@ -36,8 +38,10 @@ class SignUpview(views.APIView):
         
         user =serializer.save()
         #Implement logic to send mail for user email verification
+        send_email(request=request, user=user, mail_type='signup')
 
-        return Response({"message": f"{user.first_name}, your account has been successfully created."},
+        return Response({"message": f"{user.first_name}, your account has been successfully created." +
+                         "Check your mail to verify your account"},
                         status=status.HTTP_200_OK)
 
 
@@ -47,5 +51,7 @@ class UserPasswordResetView(views.APIView):
     def post(self, request: Request, *args, **kwargs):
         serializer = UserPasswordResetSerializer(data=request.data)
         user = User.objects.get(email=serializer.validated_data['email'])
-        #finish up the password reset
-        
+        send_email(request=request,user=user, mail_type='password_reset')
+
+        return Response({'message': 'Kindly Check your mail to access the password reset link'},
+                        status=status.HTTP_200_OK)
