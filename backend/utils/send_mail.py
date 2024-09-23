@@ -12,11 +12,19 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.contrib.auth import get_user_model
-
+from django.utils.encoding import force_bytes
+from cryptography.fernet import Fernet
 
 User = get_user_model()
 session = SessionStore()
 session_key = None
+
+
+
+key = Fernet.generate_key()
+cipher = Fernet(key)
+
+
 
 class AccountActivationToken(PasswordResetTokenGenerator):
     #modify it to generate tokens that expires after a given time
@@ -34,10 +42,11 @@ def send_email(request, user, **kwargs)-> Union[Response,None]:
     
     #Generate verification url for the email
     verification_token = token_generator.make_token(user=user)
+    encrypted_data = cipher.encrypt(force_bytes(user.pk))
     parsed_uri = get_parsed_url_from_request(request.build_absolute_uri())
     url_scheme = parsed_uri.scheme
     current_domain = parsed_uri.netloc
-    verification_link = f"{url_scheme}://{current_domain}/verify/?{verification_token}" 
+    verification_link = f"{url_scheme}://{current_domain}/verify/?token={verification_token}&safe={encrypted_data.decode()}" 
 
     """Logic for sending mail alos sends mail as plain text incase html cannot be rendered"""
     html_message = render_to_string(f"{kwargs['mail_type']}.html",
@@ -56,10 +65,12 @@ def send_email(request, user, **kwargs)-> Union[Response,None]:
     
 
 
-def verify_token(user, token):
+def verify_token(token, safe) -> Union[Response, bool]:
     try:
+          user_id = cipher.decrypt(force_bytes(safe))
+          user = User.objects.get(pk=user_id.decode())
           user = token_generator.check_token(user, token)
     except User.DoesNotExist as e:
-         return "Invlalid Link"
+         return Response({"error": "Link is invalid"}, status=status.HTTP_400_BAD_REQUEST)
     
     return True
