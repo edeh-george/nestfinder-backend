@@ -36,8 +36,9 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             user = User.objects.get(email=email)
             if not user.email_verified:
                 #Add logic to send mail if user is not verified
+                link = send_email(request=request,user=user, mail_type='verify_on_login')
                 return Response({"email": f"Sorry {user.username}, your email is not verified. "+
-                                 "Please kindly check your mail to verify your account"}, status=status.HTTP_400_BAD_REQUEST)
+                                 "Please kindly check your mail to verify your account", "link":link}, status=status.HTTP_400_BAD_REQUEST)
             return response      
 
 

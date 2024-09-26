@@ -24,7 +24,7 @@ session_key = None
 key = Fernet.generate_key()
 cipher = Fernet(key)
 
-
+#I work on you today
 
 class AccountActivationToken(PasswordResetTokenGenerator):
     #modify it to generate tokens that expires after a given time
@@ -46,7 +46,7 @@ def send_email(request, user, **kwargs)-> Union[Response,None]:
     parsed_uri = get_parsed_url_from_request(request.build_absolute_uri())
     url_scheme = parsed_uri.scheme
     current_domain = parsed_uri.netloc
-    verification_link = f"{url_scheme}://{current_domain}/verify/?token={verification_token}&safe={encrypted_data.decode()}" 
+    verification_link = f"{url_scheme}://{current_domain}/api/v1/verify/?token={verification_token}&safe={encrypted_data.decode()}" 
 
     """Logic for sending mail alos sends mail as plain text incase html cannot be rendered"""
     html_message = render_to_string(f"{kwargs['mail_type']}.html",
@@ -61,6 +61,8 @@ def send_email(request, user, **kwargs)-> Union[Response,None]:
         msg.send()
     except ValidationError as e:
         return Response(e.messages, status=status.HTTP_400_BAD_REQUEST)
+
+    return verification_link
 
     
 
