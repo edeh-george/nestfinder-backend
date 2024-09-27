@@ -1,8 +1,16 @@
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model
+from rest_framework.exceptions import ValidationError
+
+
 User = get_user_model()
 
+class PasswordField(serializers.CharField):
+    def __init__(self, **kwargs):
+        # Set write_only to True by default
+        kwargs['write_only'] = True
+        super().__init__(**kwargs)
 
 
 class UserEmailVerificationSerializer(serializers.Serializer):
@@ -10,10 +18,12 @@ class UserEmailVerificationSerializer(serializers.Serializer):
     safe = serializers.CharField()
 
 class UserSignUpSerializer(serializers.Serializer):
+
     name = serializers.CharField()
     email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
-    _password = serializers.CharField(write_only=True)
+    password = PasswordField()
+    _password = PasswordField()
+
 
     def validate(self, attrs):
         if attrs['password'] != attrs['_password']:
@@ -36,6 +46,28 @@ class UserSignUpSerializer(serializers.Serializer):
 
 class UserPasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
+
+class UserPasswordResetLoggedinSerializer(serializers.Serializer):
+    old_password = PasswordField()
+    new_password = PasswordField()
+    _new_password = PasswordField()
+
+    def __init__(self, instance=None, data=..., **kwargs):
+        super().__init__(instance, data, **kwargs)
+        self.request = self.context.get('request')
+
+        
+
+
+    def validate(self, attrs):
+        if attrs['new_password'] != attrs['_new_password']:
+            raise ValidationError(detail="Passwords don't match")
+        del attrs['_new_password']
+        #Checks if the old password matches the user old password
+        if not self.instance.check_password(attrs['old_password']):
+            raise ValidationError(detail="Old passsword is incorrect")
+        del attrs['old_password']
+        return attrs
 
 
 class UserLogoutSerializer(serializers.Serializer):

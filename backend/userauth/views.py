@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from . serializers import (
     UserSignUpSerializer,
     UserPasswordResetSerializer,
+    UserPasswordResetLoggedinSerializer,
     UserLogoutSerializer,
     UserEmailVerificationSerializer)
 from utils.send_mail import send_email, verify_token
@@ -18,6 +19,7 @@ class VerifyEmailView(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]
     serializer_class = UserEmailVerificationSerializer
     
+    @extend_schema()
     def post(self, request: Request, *args, **kwargs):
         serializer = UserEmailVerificationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -71,25 +73,29 @@ class SignUpview(generics.CreateAPIView):
                          "Check your mail to verify your account"},
                         status=status.HTTP_200_OK)
 
+class VerifyPasswordResetView(generics.GenericAPIView):
+    ...
 
-class UserPasswordResetView(views.APIView):
+class UserPasswordResetRequestView(views.APIView):
+    permission_classes = [permissions.AllowAny]
+    serializer_class = UserPasswordResetSerializer
     
     @extend_schema()
     def post(self, request: Request, *args, **kwargs):
-        if request.user.is_authenticated:
+        user = request.user
+
+        if not user.is_authenticated:
+            serializer = UserPasswordResetConfirmView(data=request.data)
+            serializer.is_valid(raise_exception=True)
             user = User.objects.get(email=serializer.validated_data['email'])
-            send_email(request=request,user=user, mail_type='password_reset')
-            return Response({'message': f'{user.username}, please your mail to access the password reset link'},
+
+        link = send_email(request=request, user=request.user, mail_type='password_reset')
+        
+        return Response({'message': 'Kindly Check your mail to access the password reset link', "link": link},
                         status=status.HTTP_200_OK)
 
-        serializer = UserPasswordResetSerializer(data=request.data)
-        user = User.objects.get(email=serializer.validated_data['email'])
-        send_email(request=request,user=user, mail_type='password_reset')
-
-        return Response({'message': 'Kindly Check your mail to access the password reset link'},
-                        status=status.HTTP_200_OK)
-
-
+class UserPasswordResetConfirmView(generics.GenericAPIView):
+    ...
 
 class LogoutView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
