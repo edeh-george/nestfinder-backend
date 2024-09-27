@@ -1,5 +1,6 @@
 import os
 from typing import Union
+from django.contrib.auth.base_user import AbstractBaseUser
 from dotenv import load_dotenv
 from urllib.parse import urlparse
 load_dotenv()
@@ -14,26 +15,50 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.contrib.auth import get_user_model
 from django.utils.encoding import force_bytes
 from cryptography.fernet import Fernet
-from django.conf import settings
+from datetime import datetime, time
+
+
+"""Finish modifying the token generator for password reset
+and also check whether it is a valid action to take.
+Then test it out in the views."""
+
+
 
 User = get_user_model()
 session = SessionStore()
 session_key = None
 
+# Variable to store the last key generation time
+last_key_generation = None
+key = None
 
+def generate_key_if_midnight():
+    global last_key_generation, key
 
-# key = Fernet.generate_key()
-key = b'-wU-YRYW2wdE_zdG3pdq0uOXcFe3u1A7CG41f-nbYo8='
+    # Get the current time
+    now = datetime.now()
+
+    # Check if it's a new day (midnight)
+    if last_key_generation is None or now.date() != last_key_generation.date():
+        # Generate a new key
+        current_key = Fernet.generate_key()
+        last_key_generation = now
+
+key = generate_key_if_midnight()
 cipher = Fernet(key)
 
 #I work on you today
 
 class AccountActivationToken(PasswordResetTokenGenerator):
-    #modify it to generate tokens that expires after a given time
-    #probably hashes the current time and to unhash it the time has to be within a 
-    #specific range for the key to be passed
-    pass
-token_generator = AccountActivationToken()
+     ...
+
+account_activation_token_generator = AccountActivationToken()
+
+class CustomPasswordResetTokenGenerator(PasswordResetTokenGenerator):
+     ...
+     #Modify this function to alter what it returns
+    #  def _make_hash_value(self, user: AbstractBaseUser, timestamp: int) -> str:
+    #       return super()._make_hash_value(user, timestamp)
 
 def get_parsed_url_from_request(uri):
         return urlparse(uri)
@@ -43,7 +68,7 @@ def send_email(request, user, **kwargs)-> Union[Response,None]:
 
     
     #Generate verification url for the email
-    verification_token = token_generator.make_token(user=user)
+    verification_token = account_activation_token_generator.make_token(user=user)
     encrypted_data = cipher.encrypt(force_bytes(user.pk))
     parsed_uri = get_parsed_url_from_request(request.build_absolute_uri())
     url_scheme = parsed_uri.scheme
@@ -73,7 +98,7 @@ def verify_token(token, safe) -> Union[Response, bool]:
     try:
           user_id = cipher.decrypt(force_bytes(safe))
           user = User.objects.get(pk=user_id.decode())
-          match = token_generator.check_token(user, token)
+          match = account_activation_token_generator.check_token(user, token)
     except User.DoesNotExist as e:
          return Response({"error": "Link is invalid"}, status=status.HTTP_400_BAD_REQUEST)
     if match:
