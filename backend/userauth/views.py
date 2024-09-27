@@ -15,19 +15,28 @@ from drf_spectacular.utils import extend_schema
 User = get_user_model()
 
 class VerifyEmailView(generics.GenericAPIView):
+    permission_classes = [permissions.AllowAny]
     serializer_class = UserEmailVerificationSerializer
     
     def post(self, request: Request, *args, **kwargs):
         serializer = UserEmailVerificationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        response = verify_token(token=data['token'], safe=data['safe'])
-        if isinstance(response, Response):
-            return response
+        user = verify_token(token=data['token'], safe=data['safe'])
+        if isinstance(user, User):
+            user.email_verified = True
+            user.save(force_update= True, update_fields=["email_verified"])
+            return Response({'detail':f"{user.username}, you email is successfully verified."})
         
+        #If user instance returned is of type - None
+        return Response({"error": "Nothing was returned"}, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
+
+    @extend_schema()
     def post(self, request: Request, *args, **kwargs) -> Response:
 
         response = super().post(request, *args, **kwargs)
@@ -39,8 +48,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 link = send_email(request=request,user=user, mail_type='verify_on_login')
                 return Response({"email": f"Sorry {user.username}, your email is not verified. "+
                                  "Please kindly check your mail to verify your account", "link":link}, status=status.HTTP_400_BAD_REQUEST)
-            return response      
-
+            return response 
 
 class SignUpview(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
@@ -66,6 +74,7 @@ class SignUpview(generics.CreateAPIView):
 
 class UserPasswordResetView(views.APIView):
     
+    @extend_schema()
     def post(self, request: Request, *args, **kwargs):
         if request.user.is_authenticated:
             user = User.objects.get(email=serializer.validated_data['email'])

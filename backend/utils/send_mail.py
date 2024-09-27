@@ -14,6 +14,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.contrib.auth import get_user_model
 from django.utils.encoding import force_bytes
 from cryptography.fernet import Fernet
+from django.conf import settings
 
 User = get_user_model()
 session = SessionStore()
@@ -21,7 +22,8 @@ session_key = None
 
 
 
-key = Fernet.generate_key()
+# key = Fernet.generate_key()
+key = b'-wU-YRYW2wdE_zdG3pdq0uOXcFe3u1A7CG41f-nbYo8='
 cipher = Fernet(key)
 
 #I work on you today
@@ -46,7 +48,7 @@ def send_email(request, user, **kwargs)-> Union[Response,None]:
     parsed_uri = get_parsed_url_from_request(request.build_absolute_uri())
     url_scheme = parsed_uri.scheme
     current_domain = parsed_uri.netloc
-    verification_link = f"{url_scheme}://{current_domain}/api/v1/verify/?token={verification_token}&safe={encrypted_data.decode()}" 
+    verification_link = f"{url_scheme}://{current_domain}/api/v1/verify/{verification_token}/{encrypted_data.decode()}" 
 
     """Logic for sending mail alos sends mail as plain text incase html cannot be rendered"""
     html_message = render_to_string(f"{kwargs['mail_type']}.html",
@@ -57,10 +59,10 @@ def send_email(request, user, **kwargs)-> Union[Response,None]:
     from_email, to = os.environ.get('EMAIL_HOST_USER'), user.email
     msg = EmailMultiAlternatives(subject, plain_message, from_email, [to])
     msg.attach_alternative(html_message, "text/html")
-    try:
-        msg.send()
-    except ValidationError as e:
-        return Response(e.messages, status=status.HTTP_400_BAD_REQUEST)
+    # try:
+    #     msg.send()
+    # except ValidationError as e:
+    #     return Response(e.messages, status=status.HTTP_400_BAD_REQUEST)
 
     return verification_link
 
@@ -71,8 +73,8 @@ def verify_token(token, safe) -> Union[Response, bool]:
     try:
           user_id = cipher.decrypt(force_bytes(safe))
           user = User.objects.get(pk=user_id.decode())
-          user = token_generator.check_token(user, token)
+          match = token_generator.check_token(user, token)
     except User.DoesNotExist as e:
          return Response({"error": "Link is invalid"}, status=status.HTTP_400_BAD_REQUEST)
-    
-    return True
+    if match:
+        return user
