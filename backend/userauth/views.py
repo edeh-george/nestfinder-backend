@@ -6,28 +6,40 @@ from django.contrib.auth import get_user_model
 from . serializers import (
     UserSignUpSerializer,
     UserPasswordResetSerializer,
+    UserNewPasswordResetSerializer,
     UserLogoutSerializer,
     UserEmailVerificationSerializer)
-from utils.send_mail import send_email, verify_token
+from utils.send_mail import send_email, verify_token, decrypt_token
+from django.urls import reverse
 from drf_spectacular.utils import extend_schema
 
 
 User = get_user_model()
 
 class VerifyEmailView(generics.GenericAPIView):
+    permission_classes = [permissions.AllowAny]
     serializer_class = UserEmailVerificationSerializer
     
+    @extend_schema()
     def post(self, request: Request, *args, **kwargs):
         serializer = UserEmailVerificationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        response = verify_token(token=data['token'], safe=data['safe'])
-        if isinstance(response, Response):
-            return response
+        user = verify_token(token=data['token'], safe=data['safe'])
+        if isinstance(user, User):
+            user.email_verified = True
+            user.save(force_update= True, update_fields=["email_verified"])
+            return Response({'detail':f"{user.username}, you email is successfully verified."})
         
+        #If user instance returned is of type - None
+        return Response({"error": "Nothing was returned"}, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
+
+    @extend_schema()
     def post(self, request: Request, *args, **kwargs) -> Response:
 
         response = super().post(request, *args, **kwargs)
@@ -36,10 +48,10 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             user = User.objects.get(email=email)
             if not user.email_verified:
                 #Add logic to send mail if user is not verified
+                link = send_email(request=request,user=user, mail_type='verify_on_login')
                 return Response({"email": f"Sorry {user.username}, your email is not verified. "+
-                                 "Please kindly check your mail to verify your account"}, status=status.HTTP_400_BAD_REQUEST)
-            return response      
-
+                                 "Please kindly check your mail to verify your account", "link":link}, status=status.HTTP_400_BAD_REQUEST)
+            return response 
 
 class SignUpview(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
@@ -63,21 +75,58 @@ class SignUpview(generics.CreateAPIView):
                         status=status.HTTP_200_OK)
 
 
-class UserPasswordResetView(views.APIView):
+
+class UserPasswordResetRequestView(views.APIView):
+    permission_classes = [permissions.AllowAny]
+    serializer_class = UserPasswordResetSerializer
     
+    @extend_schema()
     def post(self, request: Request, *args, **kwargs):
-        if request.user.is_authenticated:
+        user = request.user
+
+        if not user.is_authenticated:
+            serializer = self.serializer_class(data=request.data)
+            serializer.is_valid(raise_exception=True)
             user = User.objects.get(email=serializer.validated_data['email'])
-            send_email(request=request,user=user, mail_type='password_reset')
-            return Response({'message': f'{user.username}, please your mail to access the password reset link'},
-                        status=status.HTTP_200_OK)
 
-        serializer = UserPasswordResetSerializer(data=request.data)
-        user = User.objects.get(email=serializer.validated_data['email'])
-        send_email(request=request,user=user, mail_type='password_reset')
-
-        return Response({'message': 'Kindly Check your mail to access the password reset link'},
+        link = send_email(request=request, user=request.user, mail_type='password_reset')
+        
+        return Response({'message': 'Kindly Check your mail to access the password reset link', "link": link},
                         status=status.HTTP_200_OK)
+    
+class VerifyPasswordResetView(generics.GenericAPIView):
+    serializer_class = UserEmailVerificationSerializer
+    
+    def post(self, request, *args, **kwargs):
+
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        user = verify_token(token=data['token'], safe=data['safe'])
+        print(user)
+        if isinstance(user, Response):
+            return Response(user.data, status=user.status_code)
+        if isinstance(user, User):
+            return Response({'message':f"{user.username}, the link has been verified you can not reset your password.",
+                             "reset link": reverse("userauth:new-password", kwargs={"safe": kwargs["safe"]})},
+                             status=status.HTTP_200_OK)
+                
+        #If user instance returned is of type - None
+        return Response({"error": "Invalid link or link expired"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class UserPasswordResetConfirmView(generics.GenericAPIView):
+    serializer_class = UserNewPasswordResetSerializer
+
+    def post(self, request, *args, **kwargs):
+        user = User.objects.get(pk=decrypt_token(kwargs["safe"]))
+        serializer = self.serializer_class(data=request.data, instance=user)
+        print(serializer.instance)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        
+        return Response({'message': 'User password successfully updated'}, status=status.HTTP_200_OK)
 
 
 
