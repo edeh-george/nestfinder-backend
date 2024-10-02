@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model
 from rest_framework.exceptions import ValidationError
+from django.core.validators import RegexValidator
 
 
 User = get_user_model()
@@ -12,6 +13,12 @@ class PasswordField(serializers.CharField):
         kwargs['write_only'] = True
         super().__init__(**kwargs)
 
+PasswordValidator = RegexValidator(
+                        regex=r'^[\w+/\-]*$',  # Only letters and numbers allowed
+                        message="Username must contain only letters and numbers or special characters (\, /, -, _)",
+                        code='invalid_password'
+                    )
+
 
 class UserEmailVerificationSerializer(serializers.Serializer):
     token = serializers.CharField()
@@ -21,7 +28,7 @@ class UserSignUpSerializer(serializers.Serializer):
 
     name = serializers.CharField()
     email = serializers.EmailField()
-    password = PasswordField()
+    password = PasswordField(validators=[PasswordValidator])
     _password = PasswordField()
 
 
@@ -47,28 +54,29 @@ class UserSignUpSerializer(serializers.Serializer):
 class UserPasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
-class UserPasswordResetLoggedinSerializer(serializers.Serializer):
-    old_password = PasswordField()
-    new_password = PasswordField()
-    _new_password = PasswordField()
-
-    def __init__(self, instance=None, data=..., **kwargs):
-        super().__init__(instance, data, **kwargs)
-        self.request = self.context.get('request')
-
+class UserNewPasswordResetSerializer(serializers.Serializer):
+    password = PasswordField(validators=[PasswordValidator])
+    password_confirm = PasswordField(validators=[PasswordValidator])
         
 
 
     def validate(self, attrs):
-        if attrs['new_password'] != attrs['_new_password']:
+        if attrs['password'] != attrs['password_confirm']:
             raise ValidationError(detail="Passwords don't match")
-        del attrs['_new_password']
-        #Checks if the old password matches the user old password
-        if not self.instance.check_password(attrs['old_password']):
-            raise ValidationError(detail="Old passsword is incorrect")
-        del attrs['old_password']
+        del attrs['password_confirm']
         return attrs
+    
+    def update(self, instance, validated_data):
+
+        field = list(validated_data.keys())[0]
+        setattr(instance, field, make_password(validated_data[field]))
+        instance.save(force_update=True, update_fields=validated_data.keys())
+
+        return instance
+
+    
 
 
 class UserLogoutSerializer(serializers.Serializer):
     pass
+
