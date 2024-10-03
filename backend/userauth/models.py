@@ -30,6 +30,7 @@ class CustomUserManager(UserManager):
 class UserModel(AbstractUser):
     email = models.EmailField(_("email address"), unique=True, blank=True)
     email_verified = models.BooleanField(default=False)
+    is_landlord = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
