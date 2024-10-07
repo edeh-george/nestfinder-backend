@@ -2,8 +2,6 @@ from rest_framework import permissions, status
 from rest_framework.response import Response
 from .serializers import (
     UserProfileSerializer,
-    ApplicationHistorySerializer,
-    JobHistorySerializer
     )
 from django_filters.rest_framework.backends import DjangoFilterBackend
 from rest_framework_json_api.filters import OrderingFilter
