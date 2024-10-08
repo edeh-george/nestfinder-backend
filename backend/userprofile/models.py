@@ -5,12 +5,16 @@ from django.core.validators import RegexValidator, MinValueValidator
 
 User = get_user_model()
 
+
+phone_regex = RegexValidator(
+        regex=r'^\+?234?\d{9,15}$',
+        message="Phone number must be entered in the format: \
+            \'+234xxxxxxx\'. Cannot be more that 9 digits and a maximum of 15 digits is allowed."
+        )
+
 class TenantProfile(models.Model):
 
-    phone_regex = RegexValidator(
-        regex=r'^\+?234?\d{9,15}$',
-        message="Phone number must be entered in the format: '+234xxxxxxx'. Up to 15 digits allowed."
-    )
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE,
                                 related_name='user')
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
@@ -26,4 +30,5 @@ class TenantProfile(models.Model):
 
 
 class LandlordProfile(models.Model):
-    ...
+    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
+    phone_number = models.CharField(max_length=17, validators=[phone_regex])
