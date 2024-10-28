@@ -4,6 +4,7 @@ cffi==1.17.1
 cryptography==43.0.1
 distlib==0.3.8
 Django==5.1.1
+django-cors-headers==4.5.0
 django-filter==24.3
 django-rest-framework==0.1.0
 djangorestframework==3.15.2
