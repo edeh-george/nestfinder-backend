@@ -13,7 +13,9 @@ from utils.send_mail import send_email, verify_token, decrypt_token
 from django.urls import reverse
 from drf_spectacular.utils import extend_schema
 
-
+"""Should remember me still be in the login page or should every user have a session automatically on signing in.
+websockets should be used in gethired backend for the notifications before launch. A signal should trigger the logout view automatically when the browser is closed if remember me was not clicked.
+"""
 User = get_user_model()
 
 class VerifyEmailView(generics.GenericAPIView):

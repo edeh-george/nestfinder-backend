@@ -15,30 +15,18 @@ from django.utils.encoding import force_bytes
 from cryptography.fernet import Fernet
 from rest_framework.exceptions import ValidationError
 from datetime import datetime, time
+from . safe_key import generate_safe_key
 
 
 User = get_user_model()
 session = SessionStore()
 session_key = None
 
-# Variable to store the last key generation time
-# last_key_generation = None
-# key = None
+last_access = timezone.now()
 
-# def generate_key_if_midnight():
-#     global last_key_generation, key
 
-#     # Get the current time
-#     now = datetime.now()
 
-#     # Check if it's a new day (midnight)
-#     if last_key_generation is None or now.date() != last_key_generation.date():
-#         # Generate a new key
-#         current_key = Fernet.generate_key()
-#         last_key_generation = now
-
-key = Fernet.generate_key()
-value = b'2Ul4Od5qB8Kp35SAkdMpfvu9-cPVPII0YWNxKMVObHg='
+value = generate_safe_key()
 cipher = Fernet(value)
 
 
@@ -68,10 +56,10 @@ def send_email(request, user, **kwargs)-> Union[Response,None]:
     from_email, to = os.environ.get('EMAIL_HOST_USER'), user.email
     msg = EmailMultiAlternatives(subject, plain_message, from_email, [to])
     msg.attach_alternative(html_message, "text/html")
-    # try:
-    #     msg.send()
-    # except ValidationError as e:
-    #     return Response(e.messages, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        msg.send()
+    except ValidationError as e:
+        return Response(e.messages, status=status.HTTP_400_BAD_REQUEST)
 
     return verification_link
 
