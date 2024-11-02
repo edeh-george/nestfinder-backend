@@ -12,6 +12,8 @@ from . serializers import (
 from utils.send_mail import send_email, verify_token, decrypt_token
 from django.urls import reverse
 from drf_spectacular.utils import extend_schema
+from django.middleware import csrf
+from django.conf import settings
 
 """Should remember me still be in the login page or should every user have a session automatically on signing in.
 websockets should be used in gethired backend for the notifications before launch. A signal should trigger the logout view automatically when the browser is closed if remember me was not clicked.
@@ -53,7 +55,19 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 link = send_email(request=request,user=user, mail_type='verify_on_login')
                 return Response({"email": f"Sorry {user.username}, your email is not verified. "+
                                  "Please kindly check your mail to verify your account", "link":link}, status=status.HTTP_400_BAD_REQUEST)
-            return response 
+        response.set_cookie(
+                                    key = settings.SIMPLE_JWT['AUTH_COOKIE'], 
+                                    value = response.data["refresh"],
+                                    expires = settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'],
+                                    secure = settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                                    httponly = settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                                    samesite = settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
+                                        )
+        csrf.get_token(request)
+        del response.data['refresh']
+        return response 
+
+        
 
 class SignUpview(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]

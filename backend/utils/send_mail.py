@@ -22,10 +22,6 @@ User = get_user_model()
 session = SessionStore()
 session_key = None
 
-last_access = timezone.now()
-
-
-
 value = generate_safe_key()
 cipher = Fernet(value)
 
