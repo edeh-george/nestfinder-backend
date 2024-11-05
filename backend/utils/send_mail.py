@@ -23,6 +23,7 @@ session = SessionStore()
 session_key = None
 
 value = generate_safe_key()
+print(value)
 cipher = Fernet(value)
 
 
@@ -52,10 +53,10 @@ def send_email(request, user, **kwargs)-> Union[Response,None]:
     from_email, to = os.environ.get('EMAIL_HOST_USER'), user.email
     msg = EmailMultiAlternatives(subject, plain_message, from_email, [to])
     msg.attach_alternative(html_message, "text/html")
-    try:
-        msg.send()
-    except ValidationError as e:
-        return Response(e.messages, status=status.HTTP_400_BAD_REQUEST)
+    # try:
+    #     msg.send()
+    # except ValidationError as e:
+    #     return Response(e.messages, status=status.HTTP_400_BAD_REQUEST)
 
     return verification_link
 
