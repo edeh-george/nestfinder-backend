@@ -15,6 +15,7 @@ urlpatterns = [
     #Custom apps and admin site
     path("admin/", admin.site.urls),
     path('api/v1/', include('userauth.urls')),
+    path('api/v1/', include('apartment.urls')),
 ]
 
 # Serve media files in development

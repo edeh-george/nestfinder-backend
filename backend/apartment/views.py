@@ -5,7 +5,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import generics
 from .models import Apartment
-from ..userauth.authentication import CustomAuthentication
+from userauth.authentication import CustomAuthentication
 import django_filters
 
 
@@ -28,7 +28,7 @@ class ApartmentFilter(django_filters.FilterSet):
 
 class ApartmentListGenerics(generics.ListAPIView):
     permission_classes = [AllowAny]
-    authentication_classes = [CustomAuthentication]
+    # authentication_classes = [CustomAuthentication]
     queryset = Apartment.objects.all()
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_class = ApartmentFilter

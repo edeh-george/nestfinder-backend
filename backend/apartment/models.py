@@ -16,7 +16,7 @@ class Apartment(models.Model):
                                                 ('room_and_parlour', 'A room and parlour')],
                                                 default='one_room')
     description = models.TextField()
-    image = models.FileField(upload_to='files/')
+    image = models.FileField(upload_to='files/', blank=True, null=True)
     price = models.PositiveIntegerField()
     location = models.CharField(max_length=255,
                                 choices=LOCATION, default='HT')
