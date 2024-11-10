@@ -12,6 +12,8 @@ from . serializers import (
 from utils.send_mail import send_email, verify_token, decrypt_token
 from django.urls import reverse
 from drf_spectacular.utils import extend_schema
+from django.middleware import csrf
+from django.conf import settings
 
 """Should remember me still be in the login page or should every user have a session automatically on signing in.
 websockets should be used in gethired backend for the notifications before launch. A signal should trigger the logout view automatically when the browser is closed if remember me was not clicked.
@@ -53,7 +55,19 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 link = send_email(request=request,user=user, mail_type='verify_on_login')
                 return Response({"email": f"Sorry {user.username}, your email is not verified. "+
                                  "Please kindly check your mail to verify your account", "link":link}, status=status.HTTP_400_BAD_REQUEST)
-            return response 
+        response.set_cookie(
+                                    key = settings.SIMPLE_JWT['AUTH_COOKIE'], 
+                                    value = response.data["refresh"],
+                                    expires = settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'],
+                                    secure = settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                                    httponly = settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                                    samesite = settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
+                                        )
+        csrf.get_token(request)
+        del response.data['refresh']
+        return response 
+
+        
 
 class SignUpview(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
@@ -84,20 +98,21 @@ class UserPasswordResetRequestView(views.APIView):
     
     @extend_schema()
     def post(self, request: Request, *args, **kwargs):
-        user = request.user
-
-        if not user.is_authenticated:
+        if not request.user.is_authenticated:
             serializer = self.serializer_class(data=request.data)
             serializer.is_valid(raise_exception=True)
             user = User.objects.get(email=serializer.validated_data['email'])
+        else:
+            user = request.user
 
-        link = send_email(request=request, user=request.user, mail_type='password_reset')
+        link = send_email(request=request, user=user, mail_type='password_reset')
         
         return Response({'message': 'Kindly Check your mail to access the password reset link', "link": link},
                         status=status.HTTP_200_OK)
     
 class VerifyPasswordResetView(generics.GenericAPIView):
     serializer_class = UserEmailVerificationSerializer
+    permission_classes =  [permissions.AllowAny]
     
     def post(self, request, *args, **kwargs):
 
