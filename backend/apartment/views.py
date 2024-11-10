@@ -1,12 +1,14 @@
-from .serializers import ApartmentSerializer
+from .serializers import ApartmentSerializer, ApartmentDetailSerializer
 from django_filters.rest_framework.backends import DjangoFilterBackend
 from rest_framework_json_api.filters import OrderingFilter
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import generics
-from .models import Apartment
+from .models import Apartment, ApartmentImage
 from userauth.authentication import CustomAuthentication
 import django_filters
+from  django.shortcuts import get_object_or_404
+from django.db.models import Prefetch
 
 
 # Create your views here.
@@ -37,3 +39,13 @@ class ApartmentListGenerics(generics.ListAPIView):
     ordering = ['-created']
     serializer_class = ApartmentSerializer
 
+
+class ApartmentDetailView(generics.RetrieveAPIView):
+    serializer_class = ApartmentDetailSerializer
+    
+    def get_object(self):
+        apartment = get_object_or_404(Apartment, id=self.kwargs['pk'])  # Assume pk is passed as URL parameter
+        apartment = Apartment.objects.prefetch_related(
+            Prefetch('images', queryset=ApartmentImage.objects.all(), to_attr='image_list')
+        ).get(id=apartment.id)
+        return apartment

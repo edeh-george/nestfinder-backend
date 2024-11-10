@@ -92,7 +92,7 @@ def generate_safe_key():
     if difference > timedelta(seconds=600) and difference > timedelta(days=2):
         key = Fernet.generate_key()
         key_manager.key = key
-        manager.last_access(datetime.now())
+        manager.last_access = datetime.now()
     return key
 
 generate_safe_key()
