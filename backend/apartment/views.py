@@ -11,6 +11,9 @@ from  django.shortcuts import get_object_or_404
 from django.db.models import Prefetch
 
 
+"""Add views for apartment adding and make it exclulsive to landlords and agents
+modify the permissions in django (use this method)"""
+
 # Create your views here.
 class ApartmentFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(field_name='name', lookup_expr='icontains')
@@ -43,8 +46,8 @@ class ApartmentListGenerics(generics.ListAPIView):
 class ApartmentDetailView(generics.RetrieveAPIView):
     serializer_class = ApartmentDetailSerializer
     
-    def get_object(self):
-        apartment = get_object_or_404(Apartment, id=self.kwargs['pk'])  # Assume pk is passed as URL parameter
+    def get_object(self, *args, **kwargs):
+        apartment = get_object_or_404(Apartment, id=self.kwargs['pk'])
         apartment = Apartment.objects.prefetch_related(
             Prefetch('images', queryset=ApartmentImage.objects.all(), to_attr='image_list')
         ).get(id=apartment.id)

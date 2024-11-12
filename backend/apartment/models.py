@@ -1,18 +1,23 @@
 from django.db import models
-from django.utils import timezone
 from userauth.models import UserModel
-import os
-from django.db.models import Count
+import os, uuid
 
 
 def user_directory_path(instance, filename):
     user_id = instance.uploaded_by.id if isinstance(instance, Apartment) else instance.apartment.uploaded_by.id
     apartment_id = instance.id if isinstance(instance, Apartment) else instance.apartment.id
-    if not apartment_id:
-        instance.save()
     return os.path.join(f'user_{user_id}', f'apartment_{apartment_id}', filename)
 
-class Apartment(models.Model):
+class UUidModelAbstract(models.Model):
+    id = models.UUIDField(primary_key=True, auto_created=True,
+                          default=uuid.uuid4, unique=True)
+    
+    class Meta:
+        abstract = True
+
+
+class Apartment(UUidModelAbstract, models.Model):
+
     LOCATION = [
         ('ODI', 'Odim'),
         ('ODE', 'Odenigwe'),
@@ -47,16 +52,17 @@ class Apartment(models.Model):
     is_leased = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
-    # This represents the main image for the house, and saves time by reducing overhead in querying all the images
     image = models.ImageField(upload_to=user_directory_path, blank=True, null=True)
 
-class ApartmentImage(models.Model):
+
+class ApartmentImage(UUidModelAbstract, models.Model):
     apartment = models.ForeignKey(
         Apartment,
         on_delete=models.CASCADE,
         related_name='images'
     )
     images = models.ImageField(upload_to=user_directory_path)
+    
     
     def __str__(self):
         return f"image of {self.apartment.name}"
