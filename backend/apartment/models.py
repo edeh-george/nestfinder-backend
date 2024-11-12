@@ -1,7 +1,23 @@
 from django.db import models
-from django.utils import timezone
+from userauth.models import UserModel
+import os, uuid
 
-class Apartment(models.Model):
+
+def user_directory_path(instance, filename):
+    user_id = instance.uploaded_by.id if isinstance(instance, Apartment) else instance.apartment.uploaded_by.id
+    apartment_id = instance.id if isinstance(instance, Apartment) else instance.apartment.id
+    return os.path.join(f'user_{user_id}', f'apartment_{apartment_id}', filename)
+
+class UUidModelAbstract(models.Model):
+    id = models.UUIDField(primary_key=True, auto_created=True,
+                          default=uuid.uuid4, unique=True)
+    
+    class Meta:
+        abstract = True
+
+
+class Apartment(UUidModelAbstract, models.Model):
+
     LOCATION = [
         ('ODI', 'Odim'),
         ('ODE', 'Odenigwe'),
@@ -10,17 +26,43 @@ class Apartment(models.Model):
         ('HT', 'Hilltop'),
         ('SQ', 'Staff Quarters')
     ]
+    
+    uploaded_by = models.ForeignKey(
+        UserModel,
+        on_delete=models.CASCADE,
+        related_name='apartments'
+    )
+    
     name = models.CharField(max_length=255, null=True, blank=True)
-    apartment_type = models.CharField(max_length=50, 
-                                      choices= [('one_room', 'One room'), ('self_con', 'Self con'),
-                                                ('room_and_parlour', 'A room and parlour')],
-                                                default='one_room')
+    apartment_type = models.CharField(
+        max_length=50, 
+        choices=[
+            ('one_room', 'One room'),
+            ('self_con', 'Self con'),
+            ('room_and_parlour', 'A room and parlour')
+        ],
+        default='one_room'
+    )
     description = models.TextField()
-    image = models.FileField(upload_to='files/')
     price = models.PositiveIntegerField()
-    location = models.CharField(max_length=255,
-                                choices=LOCATION, default='HT')
+    location = models.CharField(
+        max_length=255,
+        choices=LOCATION, default='HT'
+    )
     is_leased = models.BooleanField(default=False)
-    roommate_required = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
+    image = models.ImageField(upload_to=user_directory_path, blank=True, null=True)
+
+
+class ApartmentImage(UUidModelAbstract, models.Model):
+    apartment = models.ForeignKey(
+        Apartment,
+        on_delete=models.CASCADE,
+        related_name='images'
+    )
+    images = models.ImageField(upload_to=user_directory_path)
+    
+    
+    def __str__(self):
+        return f"image of {self.apartment.name}"

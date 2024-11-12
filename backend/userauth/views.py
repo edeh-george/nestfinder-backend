@@ -98,20 +98,21 @@ class UserPasswordResetRequestView(views.APIView):
     
     @extend_schema()
     def post(self, request: Request, *args, **kwargs):
-        user = request.user
-
-        if not user.is_authenticated:
+        if not request.user.is_authenticated:
             serializer = self.serializer_class(data=request.data)
             serializer.is_valid(raise_exception=True)
             user = User.objects.get(email=serializer.validated_data['email'])
+        else:
+            user = request.user
 
-        link = send_email(request=request, user=request.user, mail_type='password_reset')
+        link = send_email(request=request, user=user, mail_type='password_reset')
         
         return Response({'message': 'Kindly Check your mail to access the password reset link', "link": link},
                         status=status.HTTP_200_OK)
     
 class VerifyPasswordResetView(generics.GenericAPIView):
     serializer_class = UserEmailVerificationSerializer
+    permission_classes =  [permissions.AllowAny]
     
     def post(self, request, *args, **kwargs):
 

@@ -31,6 +31,7 @@ class UserModel(AbstractUser):
     email = models.EmailField(_("email address"), unique=True, blank=True)
     email_verified = models.BooleanField(default=False)
     is_landlord = models.BooleanField(default=False)
+    # is_agent
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']

@@ -16,6 +16,7 @@ fpdf==1.7.2
 inflection==0.5.1
 jsonschema==4.23.0
 jsonschema-specifications==2024.10.1
+pillow==11.0.0
 platformdirs==4.2.2
 pycparser==2.22
 PyJWT==2.9.0
