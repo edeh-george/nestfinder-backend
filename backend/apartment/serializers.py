@@ -7,10 +7,10 @@ from . models import Apartment, ApartmentImage
 
 class ApartmentSerializer(serializers.ModelSerializer):
     
+    
     class Meta:
         model = Apartment
-        # fields = '__all__'
-        exclude = ['image']
+        fields = '__all__'
     
 
 class ApartmentDetailSerializer(serializers.ModelSerializer):

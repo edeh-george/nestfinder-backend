@@ -4,6 +4,7 @@ from .serializers import (ApartmentSerializer,
 from django_filters.rest_framework.backends import DjangoFilterBackend
 from rest_framework_json_api.filters import OrderingFilter
 from rest_framework.filters import SearchFilter
+from . filters import LocationFilterBackend
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import generics
 from .models import Apartment, ApartmentImage
@@ -32,13 +33,12 @@ class ApartmentFilter(django_filters.FilterSet):
         ]
 
 
-
 class ApartmentListGenerics(generics.ListAPIView):
     permission_classes = [AllowAny]
     # authentication_classes = [CustomAuthentication]
-    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter, LocationFilterBackend]
     filterset_class = ApartmentFilter
-    search_fields = ['name', 'location']
+    search_fields = ['name']
     ordering_fields = '__all__'
     ordering = ['-created']
     serializer_class = ApartmentSerializer
