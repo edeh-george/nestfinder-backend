@@ -9,7 +9,8 @@ class ApartmentSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Apartment
-        fields = '__all__'
+        # fields = '__all__'
+        exclude = ['image']
     
 
 class ApartmentDetailSerializer(serializers.ModelSerializer):
@@ -17,14 +18,23 @@ class ApartmentDetailSerializer(serializers.ModelSerializer):
     image_url_list = serializers.SerializerMethodField()
     
     class Meta:
-        model = ApartmentImage
+        model = ApartmentImage  
         fields = ['apartment_id', 'image_url_list']
         
     def get_apartment_id(self, obj):
         return obj.id 
     
     def get_image_url_list(self, obj):
-        image_urls = [image.images.url for image in obj.image_list if image.images]
+        request = self.context.get('request')
+        image_urls = [
+            request.build_absolute_uri(image.images.url)
+            for image in obj.image_list if image.images
+            ]
         
         return image_urls
         
+        
+class ApartmentCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Apartment
+        fields = '__all__'
