@@ -57,6 +57,7 @@ class ApartmentListGenerics(generics.ListAPIView):
 
 class ApartmentDetailView(generics.RetrieveAPIView):
     serializer_class = ApartmentDetailSerializer
+    permission_classes = [AllowAny]
     
     def get_object(self, *args, **kwargs):
         apartment = get_object_or_404(Apartment, id=self.kwargs['pk'])
