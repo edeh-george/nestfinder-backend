@@ -1,10 +1,9 @@
 from .serializers import (ApartmentSerializer,
-                          ApartmentDetailSerializer,
-                          ApartmentCreateSerializer)
+                          ApartmentDetailSerializer)
 from django_filters.rest_framework.backends import DjangoFilterBackend
 from rest_framework_json_api.filters import OrderingFilter
 from rest_framework.filters import SearchFilter
-from . filters import LocationFilterBackend
+from . filters import LocationFilterBackend, ApartmentFilterBackend
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import generics
 from .models import Apartment, ApartmentImage
@@ -12,7 +11,7 @@ from userauth.authentication import CustomAuthentication
 import django_filters
 from  django.shortcuts import get_object_or_404
 from django.db.models import Prefetch
-
+from ..userauth.permissions import canModifyPermission
 
 
 # Create your views here.
@@ -23,7 +22,7 @@ class ApartmentFilter(django_filters.FilterSet):
     is_leased = django_filters.BooleanFilter(field_name='is_leased')
     date_from = django_filters.DateFilter(field_name='created', lookup_expr='gte')
     date_to = django_filters.DateFilter(field_name='created', lookup_expr='lte')
-    #remember to add filter for location
+    apartment_type = django_filters.CharFilter(field_name='apartment_type', lookup_expr='icontains')
 
     class Meta:
         model = Apartment
@@ -36,7 +35,8 @@ class ApartmentFilter(django_filters.FilterSet):
 class ApartmentListGenerics(generics.ListAPIView):
     permission_classes = [AllowAny]
     # authentication_classes = [CustomAuthentication]
-    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter, LocationFilterBackend]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter,
+                       LocationFilterBackend, ApartmentFilterBackend]
     filterset_class = ApartmentFilter
     search_fields = ['name']
     ordering_fields = '__all__'
@@ -66,12 +66,6 @@ class ApartmentDetailView(generics.RetrieveAPIView):
         ).get(id=apartment.id)
         return apartment
 
-
-
-class ApartmentModifyPermission(IsAuthenticated):
-    def has_object_permission(self, request, view, obj):
-        userIsAuthenticated = super().has_object_permission(request, view, obj)
-        return (userIsAuthenticated and (request.user.is_landlord or request.user.is_superuser))
     
     
     
@@ -79,5 +73,5 @@ class ApartmentManageView(generics.CreateAPIView,
                                       generics.UpdateAPIView,
                                       generics.DestroyAPIView):
     
-    permission_classes = [ApartmentModifyPermission]
-    serializer_class = ApartmentCreateSerializer
+    permission_classes = [canModifyPermission]
+    serializer_class = ApartmentSerializer
