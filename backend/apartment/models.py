@@ -27,6 +27,12 @@ class Apartment(UUidModelAbstract, models.Model):
         ('SQ', 'Staff Quarters')
     ]
     
+    APARTMENT_LIST = [
+            ('one_room', 'One room'),
+            ('self_con', 'Self con'),
+            ('room_and_parlour', 'A room and parlour')
+        ]
+    
     uploaded_by = models.ForeignKey(
         UserModel,
         on_delete=models.CASCADE,
@@ -36,11 +42,7 @@ class Apartment(UUidModelAbstract, models.Model):
     name = models.CharField(max_length=255, null=True, blank=True)
     apartment_type = models.CharField(
         max_length=50, 
-        choices=[
-            ('one_room', 'One room'),
-            ('self_con', 'Self con'),
-            ('room_and_parlour', 'A room and parlour')
-        ],
+        choices= APARTMENT_LIST,
         default='one_room'
     )
     description = models.TextField()
@@ -53,7 +55,9 @@ class Apartment(UUidModelAbstract, models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     image = models.ImageField(upload_to=user_directory_path, blank=True, null=True)
-
+    
+    def __str__(self):
+        return str(self.id)
 
 class ApartmentImage(UUidModelAbstract, models.Model):
     apartment = models.ForeignKey(

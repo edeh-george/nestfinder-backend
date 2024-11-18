@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "userauth",
     "apartment",
+    "review",  
 ]
 
 
@@ -160,7 +161,7 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_METADATA_CLASS': 'rest_framework_json_api.metadata.JSONAPIMetadata',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 40,
+    'PAGE_SIZE': 20,
     'TEST_REQUEST_DEFUALT_FORMAT': 'vnd.api+json',
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 

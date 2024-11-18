@@ -14,7 +14,6 @@ location_dict =  dict(LOCATION)
 
 class ApartmentSerializer(serializers.ModelSerializer):
     
-    
     class Meta:
         model = Apartment
         fields = '__all__'
@@ -43,10 +42,3 @@ class ApartmentDetailSerializer(serializers.ModelSerializer):
         ret = super().to_representation(instance)
         ret['location'] = location_dict.get(ret['location'])
         return ret
-        
-        
-        
-class ApartmentCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Apartment
-        fields = '__all__'
