@@ -11,7 +11,12 @@ from userauth.authentication import CustomAuthentication
 import django_filters
 from  django.shortcuts import get_object_or_404
 from django.db.models import Prefetch
-from ..userauth.permissions import canModifyPermission
+from userauth.permissions import canModifyPermission
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.parsers import MultiPartParser, JSONParser
+import os 
+import json
 
 
 # Create your views here.
@@ -61,9 +66,18 @@ class ApartmentDetailView(generics.RetrieveAPIView):
     
     def get_object(self, *args, **kwargs):
         apartment = get_object_or_404(Apartment, id=self.kwargs['pk'])
+
+        image_queryset = apartment.images.all()
+        related_apartment_queryset = apartment.objects.filter(
+            is_leased=False,
+            location=apartment.location
+        ).exclude(id=apartment.id)
+        # apartment.apartments.add(*related_apartment_queryset)
         apartment = Apartment.objects.prefetch_related(
-            Prefetch('images', queryset=ApartmentImage.objects.all(), to_attr='image_list')
+            Prefetch('images', queryset=image_queryset, to_attr='image_list'),
+            Prefetch('apartments', queryset=related_apartment_queryset, to_attr='related_apartment')
         ).get(id=apartment.id)
+
         return apartment
 
     
@@ -75,3 +89,41 @@ class ApartmentManageView(generics.CreateAPIView,
     
     permission_classes = [canModifyPermission]
     serializer_class = ApartmentSerializer
+    
+    
+    
+
+class BulkCreateApartmentView(generics.GenericAPIView):
+    parser_classes = [MultiPartParser, JSONParser]
+
+    def get(self, request, *args, **kwargs):
+        file_path = os.path.abspath('../apartments_data_new.json')
+        
+        if not os.path.exists(file_path):
+            return Response({"error": "JSON file not found"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            with open(file_path, 'r') as json_file:
+                apartment_data = json.load(json_file)
+
+            apartments = []
+
+            for apartment in apartment_data:
+                apartment_instance = Apartment(
+                    name=apartment['name'],
+                    apartment_type=apartment['apartment_type'],
+                    description=apartment['description'],
+                    price=apartment['price'],
+                    location=apartment['location'],
+                    is_leased=apartment['is_leased'],
+                    uploaded_by_id=apartment['uploaded_by']  # Use `uploaded_by_id` for FK assignment
+                )
+                apartments.append(apartment_instance)
+
+            Apartment.objects.bulk_create(apartments)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"message": f"{len(apartments)} Apartments created successfully!"}, status=status.HTTP_201_CREATED)
+

@@ -6,7 +6,7 @@ import os, uuid
 def user_directory_path(instance, filename):
     user_id = instance.uploaded_by.id if isinstance(instance, Apartment) else instance.apartment.uploaded_by.id
     apartment_id = instance.id if isinstance(instance, Apartment) else instance.apartment.id
-    return os.path.join(f'user_{user_id}', f'apartment_{apartment_id}', filename)
+    return os.path.join(f'user_{user_id}', f'apartment_image_{apartment_id}', filename)
 
 class UUidModelAbstract(models.Model):
     id = models.UUIDField(primary_key=True, auto_created=True,
@@ -55,6 +55,9 @@ class Apartment(UUidModelAbstract, models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     image = models.ImageField(upload_to=user_directory_path, blank=True, null=True)
+    apartments = models.ForeignKey('self', blank=True, null=True,
+                                  on_delete=models.CASCADE,
+                                  related_name='self_related')
     
     def __str__(self):
         return str(self.id)
