@@ -9,5 +9,5 @@ urlpatterns = [
     re_path(r'^api/v1/apartment/(?P<pk>(\d+|[0-9a-fA-F-]{36}))/$',
             ApartmentManageView.as_view(),
             name='apartment-manage'),
-    path('apartment/bulkcreate', BulkCreateApartmentView.as_view()),
+    path('apartment/bulk-create', BulkCreateApartmentView.as_view()),
 ]

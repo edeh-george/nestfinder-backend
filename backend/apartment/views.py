@@ -92,7 +92,7 @@ class ApartmentManageView(generics.CreateAPIView,
     
     
     
-
+import random
 class BulkCreateApartmentView(generics.GenericAPIView):
     parser_classes = [MultiPartParser, JSONParser]
 
@@ -107,6 +107,13 @@ class BulkCreateApartmentView(generics.GenericAPIView):
                 apartment_data = json.load(json_file)
 
             apartments = []
+            image_paths = [
+                '/home/george/Downloads/image1.jpg',
+                '/home/george/Downloads/image2.jpg',
+                '/home/george/Downloads/image3.jpg',
+                '/home/george/Downloads/image4.jpg',
+                '/home/george/Downloads/image5.jpg'
+            ]
 
             for apartment in apartment_data:
                 apartment_instance = Apartment(
@@ -116,11 +123,16 @@ class BulkCreateApartmentView(generics.GenericAPIView):
                     price=apartment['price'],
                     location=apartment['location'],
                     is_leased=apartment['is_leased'],
-                    uploaded_by_id=apartment['uploaded_by']  # Use `uploaded_by_id` for FK assignment
+                    uploaded_by_id=apartment['uploaded_by']
                 )
                 apartments.append(apartment_instance)
-
             Apartment.objects.bulk_create(apartments)
+            
+            image_index = [random.randint(0,2) for _ in range(len(apartment))]
+            for index, apartment in enumerate(Apartment.objects.all()):
+                with open(image_index[index], 'rb') as img:
+                    apartment.image.save('main.jpg', img)
+                    img.close()
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
