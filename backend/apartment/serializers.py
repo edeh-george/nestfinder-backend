@@ -40,7 +40,7 @@ class ApartmentDetailSerializer(serializers.ModelSerializer):
         ]
     
     def get_related_apartments(self, obj):
-        related_apartment = getattr(obj, 'related_apartments', [])
+        related_apartment = getattr(obj, 'related_apartment', [])
         print({'message': related_apartment})
         # return[ 
         #        { "id": apartment.id,
@@ -49,12 +49,13 @@ class ApartmentDetailSerializer(serializers.ModelSerializer):
         #           "location": apartment.location,
         #           "image": apartment.image,
         #     }
-        #         for apartment in related_apartment.all()
+        #         for apartment in ApartmentSerializer(related_apartment, )
                
         # ]
+        return ApartmentSerializer(related_apartment).data
     
     def to_representation(self, instance):
         ret = super().to_representation(instance)
         ret['location'] = location_dict.get(ret['location'])
         del ret['apartments']
-        # return ret
+        return ret

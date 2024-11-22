@@ -68,14 +68,14 @@ class ApartmentDetailView(generics.RetrieveAPIView):
         apartment = get_object_or_404(Apartment, id=self.kwargs['pk'])
 
         image_queryset = apartment.images.all()
-        related_apartment_queryset = apartment.objects.filter(
+        related_apartment_queryset = Apartment.objects.filter(
             is_leased=False,
             location=apartment.location
         ).exclude(id=apartment.id)
         # apartment.apartments.add(*related_apartment_queryset)
         apartment = Apartment.objects.prefetch_related(
             Prefetch('images', queryset=image_queryset, to_attr='image_list'),
-            Prefetch('apartments', queryset=related_apartment_queryset, to_attr='related_apartment')
+            Prefetch('apartments', queryset=None, to_attr='related_apartment')
         ).get(id=apartment.id)
 
         return apartment

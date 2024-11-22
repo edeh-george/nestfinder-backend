@@ -5,6 +5,7 @@ from . models import Apartment, ApartmentImage
 @admin.register(Apartment)
 class ApartmentAdmin(admin.ModelAdmin):
     list_display = ['name', 'apartment_type', 'description', 'price', 'location', 'is_leased']
+    list_filter = ['name', 'apartment_type', 'location', 'is_leased']
     
 @admin.register(ApartmentImage)
 class ApartmentImagesAdmin(admin.ModelAdmin):
