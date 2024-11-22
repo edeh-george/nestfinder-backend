@@ -93,6 +93,7 @@ class ApartmentManageView(generics.CreateAPIView,
     
     
 import random
+from django.core.files import File
 class BulkCreateApartmentView(generics.GenericAPIView):
     parser_classes = [MultiPartParser, JSONParser]
 
@@ -106,7 +107,6 @@ class BulkCreateApartmentView(generics.GenericAPIView):
             with open(file_path, 'r') as json_file:
                 apartment_data = json.load(json_file)
 
-            apartments = []
             image_paths = [
                 '/home/george/Downloads/image1.jpg',
                 '/home/george/Downloads/image2.jpg',
@@ -115,6 +115,7 @@ class BulkCreateApartmentView(generics.GenericAPIView):
                 '/home/george/Downloads/image5.jpg'
             ]
 
+            apartments = []
             for apartment in apartment_data:
                 apartment_instance = Apartment(
                     name=apartment['name'],
@@ -126,16 +127,19 @@ class BulkCreateApartmentView(generics.GenericAPIView):
                     uploaded_by_id=apartment['uploaded_by']
                 )
                 apartments.append(apartment_instance)
+
             Apartment.objects.bulk_create(apartments)
-            
-            image_index = [random.randint(0,2) for _ in range(len(apartment))]
-            for index, apartment in enumerate(Apartment.objects.all()):
-                with open(image_index[index], 'rb') as img:
-                    apartment.image.save('main.jpg', img)
-                    img.close()
+
+            created_apartments = Apartment.objects.filter(id__in=[a.id for a in apartments])
+
+            for apartment in created_apartments:
+                random_image_path = random.choice(image_paths)
+                with open(random_image_path, 'rb') as img_file:
+                    apartment.image.save('main.jpg', File(img_file), save=False)
+
+            Apartment.objects.bulk_update(created_apartments, ['image'])
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"message": f"{len(apartments)} Apartments created successfully!"}, status=status.HTTP_201_CREATED)
-
