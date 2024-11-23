@@ -86,7 +86,6 @@ key_manager.load_key
 def generate_safe_key():
     key = key_manager.key
     last_access = manager.last_access
-    print({'key': key, 'last_access': last_access})
     current_time = datetime.fromisoformat(datetime.now().isoformat())
     difference = current_time - last_access
     if difference > timedelta(seconds=600) and difference > timedelta(days=2):

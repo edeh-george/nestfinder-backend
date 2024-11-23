@@ -23,7 +23,6 @@ session = SessionStore()
 session_key = None
 
 value = generate_safe_key()
-print(value)
 cipher = Fernet(value)
 
 
@@ -67,10 +66,7 @@ def verify_token(token: str, safe: str):
         byte_user = unquote(safe)
         user_id = decrypt_token(byte_user)
         user = get_user(user_id)
-        print(user)
-        # Check the token validity
         match = default_token_generator.check_token(user, token)
-        print(token)
         if match:
             return user
 

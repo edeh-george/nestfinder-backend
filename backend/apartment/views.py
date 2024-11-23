@@ -11,7 +11,11 @@ from userauth.authentication import CustomAuthentication
 import django_filters
 from  django.shortcuts import get_object_or_404
 from django.db.models import Prefetch
-from ..userauth.permissions import canModifyPermission
+from userauth.permissions import canModifyPermission
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.parsers import MultiPartParser, JSONParser
+import os, json, uuid
 
 
 # Create your views here.
@@ -60,10 +64,13 @@ class ApartmentDetailView(generics.RetrieveAPIView):
     permission_classes = [AllowAny]
     
     def get_object(self, *args, **kwargs):
-        apartment = get_object_or_404(Apartment, id=self.kwargs['pk'])
+        apartment = get_object_or_404(Apartment, id=self.kwargs.get('pk'))
+
         apartment = Apartment.objects.prefetch_related(
-            Prefetch('images', queryset=ApartmentImage.objects.all(), to_attr='image_list')
+            Prefetch('images', to_attr='image_list'),
+            Prefetch('apartments', to_attr='related_apartment')
         ).get(id=apartment.id)
+
         return apartment
 
     
@@ -75,3 +82,76 @@ class ApartmentManageView(generics.CreateAPIView,
     
     permission_classes = [canModifyPermission]
     serializer_class = ApartmentSerializer
+    
+    
+    
+import random
+from django.core.files import File
+class BulkCreateApartmentView(generics.GenericAPIView):
+    parser_classes = [MultiPartParser, JSONParser]
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        file_path = os.path.abspath('../apartments_data_new.json')
+        
+        if not os.path.exists(file_path):
+            return Response({"error": "JSON file not found"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            with open(file_path, 'r') as json_file:
+                apartment_data = json.load(json_file)
+
+            image_paths = [
+                '/home/george/Downloads/image1.jpg',
+                '/home/george/Downloads/image2.jpg',
+                '/home/george/Downloads/image3.jpg',
+                '/home/george/Downloads/image4.jpg',
+                '/home/george/Downloads/image5.jpg'
+            ]
+
+            apartments = []
+            for apartment in apartment_data:
+                apartment_instance = Apartment(
+                    name=apartment['name'],
+                    apartment_type=apartment['apartment_type'],
+                    description=apartment['description'],
+                    price=apartment['price'],
+                    location=apartment['location'],
+                    is_leased=apartment['is_leased'],
+                    uploaded_by_id=apartment['uploaded_by']
+                )
+                apartments.append(apartment_instance)
+
+            Apartment.objects.bulk_create(apartments)
+
+            created_apartments = Apartment.objects.filter(id__in=[a.id for a in apartments])
+
+            for apartment in created_apartments:
+                random_image_path = random.choice(image_paths)
+                with open(random_image_path, 'rb') as img_file:
+                    apartment.image.save('main.jpg', File(img_file), save=False)
+
+            Apartment.objects.bulk_update(created_apartments, ['image'])
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"message": f"{len(apartments)} Apartments created successfully!"}, status=status.HTTP_201_CREATED)
+    
+class AddRelatedApartment(generics.GenericAPIView):
+    parser_classes = [MultiPartParser, JSONParser]
+
+    def get(self, request, *args, **kwargs):
+        related_apartment_data = []
+        
+        for apartment in Apartment.objects.all():
+            if apartment.apartments:
+                continue
+            related_apartments = Apartment.objects.filter(location=apartment.location).exclude(id=apartment.id).values_list('id', flat=True)
+            related_apartments = [str(item) for item in related_apartments]
+            
+            apartment.apartments.add(*related_apartments)
+            apartment.save()
+
+
+        return Response({'message': 'Successfully added related houses'}, status=status.HTTP_200_OK)

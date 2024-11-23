@@ -5,7 +5,7 @@ from django_filters.rest_framework.backends import DjangoFilterBackend
 from rest_framework_json_api.filters import OrderingFilter
 from .models import Review
 from .serializers import ReviewSerializer
-from ..userauth.permissions import canModifyPermission
+from userauth.permissions import canModifyPermission
 
 
 
