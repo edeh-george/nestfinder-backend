@@ -1,5 +1,6 @@
 from django.db import models
 from userauth.models import UserModel
+from taggit.managers import TaggableManager
 import os, uuid
 
 
@@ -9,8 +10,9 @@ def user_directory_path(instance, filename):
     return os.path.join(f'user_{user_id}', f'apartment_image_{apartment_id}', filename)
 
 class UUidModelAbstract(models.Model):
-    id = models.UUIDField(primary_key=True, auto_created=True,
-                          default=uuid.uuid4, unique=True)
+    # id = models.UUIDField(primary_key=True, auto_created=True,
+    #                       default=uuid.uuid4, unique=True)
+    id = models.BigAutoField(primary_key=True)
     
     class Meta:
         abstract = True
@@ -55,9 +57,7 @@ class Apartment(UUidModelAbstract, models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     image = models.ImageField(upload_to=user_directory_path, blank=True, null=True)
-    apartments = models.ForeignKey('self', blank=True, null=True,
-                                  on_delete=models.CASCADE,
-                                  related_name='self_related')
+    apartments = TaggableManager(verbose_name="Related Apartments")
     
     def __str__(self):
         return str(self.id)

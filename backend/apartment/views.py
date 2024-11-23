@@ -15,8 +15,7 @@ from userauth.permissions import canModifyPermission
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, JSONParser
-import os 
-import json
+import os, json, uuid
 
 
 # Create your views here.
@@ -65,17 +64,11 @@ class ApartmentDetailView(generics.RetrieveAPIView):
     permission_classes = [AllowAny]
     
     def get_object(self, *args, **kwargs):
-        apartment = get_object_or_404(Apartment, id=self.kwargs['pk'])
+        apartment = get_object_or_404(Apartment, id=self.kwargs.get('pk'))
 
-        image_queryset = apartment.images.all()
-        related_apartment_queryset = Apartment.objects.filter(
-            is_leased=False,
-            location=apartment.location
-        ).exclude(id=apartment.id)
-        # apartment.apartments.add(*related_apartment_queryset)
         apartment = Apartment.objects.prefetch_related(
-            Prefetch('images', queryset=image_queryset, to_attr='image_list'),
-            Prefetch('apartments', queryset=None, to_attr='related_apartment')
+            Prefetch('images', to_attr='image_list'),
+            Prefetch('apartments', to_attr='related_apartment')
         ).get(id=apartment.id)
 
         return apartment
@@ -96,6 +89,7 @@ import random
 from django.core.files import File
 class BulkCreateApartmentView(generics.GenericAPIView):
     parser_classes = [MultiPartParser, JSONParser]
+    permission_classes = [AllowAny]
 
     def get(self, request, *args, **kwargs):
         file_path = os.path.abspath('../apartments_data_new.json')
@@ -143,3 +137,21 @@ class BulkCreateApartmentView(generics.GenericAPIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"message": f"{len(apartments)} Apartments created successfully!"}, status=status.HTTP_201_CREATED)
+    
+class AddRelatedApartment(generics.GenericAPIView):
+    parser_classes = [MultiPartParser, JSONParser]
+
+    def get(self, request, *args, **kwargs):
+        related_apartment_data = []
+        
+        for apartment in Apartment.objects.all():
+            if apartment.apartments:
+                continue
+            related_apartments = Apartment.objects.filter(location=apartment.location).exclude(id=apartment.id).values_list('id', flat=True)
+            related_apartments = [str(item) for item in related_apartments]
+            
+            apartment.apartments.add(*related_apartments)
+            apartment.save()
+
+
+        return Response({'message': 'Successfully added related houses'}, status=status.HTTP_200_OK)

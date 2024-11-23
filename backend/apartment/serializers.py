@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from . models import Apartment, ApartmentImage
+from taggit.serializers import TagListSerializerField
 
 #To reduce load media files are added in the gitignore, you should consider storing links to the images instead
 LOCATION = [
@@ -14,6 +15,7 @@ location_dict =  dict(LOCATION)
 
 class ApartmentSerializer(serializers.ModelSerializer):
     
+    apartments = TagListSerializerField()
     class Meta:
         model = Apartment
         fields = '__all__'
@@ -34,28 +36,23 @@ class ApartmentDetailSerializer(serializers.ModelSerializer):
                 request.build_absolute_uri(image.images.url)
                 for image in obj.image_list if image.images
                 ]
+            
             return image_urls
+        
         image_urls = [
             image.images.url for image in obj.image_list if image.image
         ]
     
     def get_related_apartments(self, obj):
-        related_apartment = getattr(obj, 'related_apartment', [])
-        print({'message': related_apartment})
-        # return[ 
-        #        { "id": apartment.id,
-        #           "name": apartment.name,
-        #           "price": apartment.price,
-        #           "location": apartment.location,
-        #           "image": apartment.image,
-        #     }
-        #         for apartment in ApartmentSerializer(related_apartment, )
-               
-        # ]
-        return ApartmentSerializer(related_apartment).data
+        apartment_ids = [str(tag.id) for tag in obj.related_apartment] 
+        print(apartment_ids)
+        related_apartment = [ApartmentSerializer(
+            Apartment.objects.get(pk=int(id))
+            ).data for id in apartment_ids]
+        return related_apartment
+
     
     def to_representation(self, instance):
         ret = super().to_representation(instance)
         ret['location'] = location_dict.get(ret['location'])
-        del ret['apartments']
         return ret
