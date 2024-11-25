@@ -174,7 +174,7 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_RENDERER_CLASSES':(
         'rest_framework.renderers.JSONRenderer',
-        # 'rest_framework.renderers.BrowsableAPIRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
     ),
     'EXCEPTION_HANDLER': 'rest_framework_json_api.exceptions.exception_handler',
     'DEFAULT_PARSERS_CLASSES':(

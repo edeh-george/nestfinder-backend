@@ -145,8 +145,6 @@ class AddRelatedApartment(generics.GenericAPIView):
         related_apartment_data = []
         
         for apartment in Apartment.objects.all():
-            if apartment.apartments:
-                continue
             related_apartments = Apartment.objects.filter(location=apartment.location).exclude(id=apartment.id).values_list('id', flat=True)
             related_apartments = [str(item) for item in related_apartments]
             
