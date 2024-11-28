@@ -45,7 +45,6 @@ class ApartmentDetailSerializer(serializers.ModelSerializer):
     
     def get_related_apartments(self, obj):
         apartment_ids = [str(tag.id) for tag in obj.related_apartment] 
-        print(apartment_ids)
         related_apartment = [ApartmentSerializer(
             Apartment.objects.get(pk=int(id))
             ).data for id in apartment_ids]

@@ -9,12 +9,11 @@ class Review(models.Model):
     rating = models.PositiveSmallIntegerField(blank=True, null=True)
     user = models.ForeignKey(User,
                              on_delete=models.CASCADE,
-                             related_name='user')
+                             related_name='user_review')
         
     apartment = models.ForeignKey(Apartment,
                              on_delete=models.CASCADE,
                              related_name='apartment')
     is_active = models.BooleanField(default=True)
-    like = models.PositiveIntegerField(default=0)
-    dislike  = models.PositiveIntegerField(default=0)
+    is_liked = models.BooleanField(default='', null=True)
     created = models.DateTimeField(auto_now_add=True)

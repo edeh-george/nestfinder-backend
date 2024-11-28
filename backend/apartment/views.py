@@ -140,6 +140,7 @@ class BulkCreateApartmentView(generics.GenericAPIView):
     
 class AddRelatedApartment(generics.GenericAPIView):
     parser_classes = [MultiPartParser, JSONParser]
+    permission_classes = [AllowAny]
 
     def get(self, request, *args, **kwargs):
         related_apartment_data = []

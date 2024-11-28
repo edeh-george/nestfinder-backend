@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "taggit",
     "userauth",
+    "userprofile",
     "apartment",
     "review",  
 ]

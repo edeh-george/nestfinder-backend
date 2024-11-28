@@ -1,12 +1,12 @@
 from rest_framework import serializers
-from .models import TenantProfile, LandlordProfile
+from .models import Profile
 
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = TenantProfile
+        model = Profile
         fields = '__all__'
 
     
@@ -28,7 +28,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         # You can now handle extra fields as needed
         extra_fields = {key: value for key, value in validated_data.items() if key not in self.Meta.fields}
         # Create the instance without extra fields
-        instance = TenantProfile.objects.create(**validated_data)
+        instance = Profile.objects.create(**validated_data)
         return instance
     
     def update(self, instance, validated_data):

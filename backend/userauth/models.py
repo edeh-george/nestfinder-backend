@@ -37,3 +37,6 @@ class UserModel(AbstractUser):
     REQUIRED_FIELDS = ['username']
 
     objects = CustomUserManager()
+
+    def __str__(self) -> str:
+        return self.email

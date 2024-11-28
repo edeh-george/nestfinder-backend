@@ -12,11 +12,11 @@ phone_regex = RegexValidator(
             \'+234xxxxxxx\'. Cannot be more that 9 digits and a maximum of 15 digits is allowed."
         )
 
-class TenantProfile(models.Model):
+class Profile(models.Model):
 
     
     user = models.OneToOneField(User, on_delete=models.CASCADE,
-                                related_name='user')
+                                related_name='user_profile')
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
     phone_number = models.CharField(max_length=17, validators=[phone_regex])
     date_of_birth = models.DateField()
@@ -27,8 +27,3 @@ class TenantProfile(models.Model):
     year_of_study = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     field_of_study = models.CharField(max_length=255, blank=True)
 
-
-
-class LandlordProfile(models.Model):
-    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
-    phone_number = models.CharField(max_length=17, validators=[phone_regex])
