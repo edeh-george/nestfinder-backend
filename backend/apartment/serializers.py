@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from . models import Apartment, ApartmentImage
+from . models import Apartment
 from taggit.serializers import TagListSerializerField
+from django.contrib.auth import get_user_model
 
 #To reduce load media files are added in the gitignore, you should consider storing links to the images instead
 LOCATION = [
@@ -54,4 +55,6 @@ class ApartmentDetailSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         ret = super().to_representation(instance)
         ret['location'] = location_dict.get(ret['location'])
+        ret['uploaded_by'] = get_user_model().objects.get(id=ret['uploaded_by']).username
+
         return ret

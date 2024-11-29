@@ -14,4 +14,5 @@ urlpatterns = [
     re_path(r'^password/reset/confirm/(?P<token>[\w=-]+)/(?P<safe>[\w=-]+)$', VerifyPasswordResetView.as_view(), name='verify-password-reset'),
     re_path(r'^password/reset/new/(?P<safe>[\w=-]+)$', UserPasswordResetConfirmView.as_view(), name='new-password'),
     path('logout/', LogoutView.as_view(), name='logout'),
+    path('user/<int:pk>', UserDetailView.as_view(), name='user-detail'),
 ]

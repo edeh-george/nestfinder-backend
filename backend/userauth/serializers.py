@@ -3,6 +3,8 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model
 from rest_framework.exceptions import ValidationError
 from django.core.validators import RegexValidator
+from userprofile.serializers import UserProfileSerializer
+
 
 
 User = get_user_model()
@@ -80,3 +82,21 @@ class UserNewPasswordResetSerializer(serializers.Serializer):
 class UserLogoutSerializer(serializers.Serializer):
     pass
 
+
+class UserDetailSerializer(serializers.ModelSerializer):
+    profile = serializers.SerializerMethodField()
+
+    class Meta:
+        model = get_user_model()
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'profile']
+
+    def get_profile(self,obj):
+        request = self.context.get('request')
+        data = UserProfileSerializer(obj.user_profile).data
+        if data['profile_picture']:
+            data['profile_picture'] = request.build_absolute_uri(
+                data['profile_picture']
+            )
+        del data['user']
+
+        return data

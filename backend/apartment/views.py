@@ -68,7 +68,7 @@ class ApartmentDetailView(generics.RetrieveAPIView):
 
         apartment = Apartment.objects.prefetch_related(
             Prefetch('images', to_attr='image_list'),
-            Prefetch('apartments', to_attr='related_apartment')
+            Prefetch('apartments', to_attr='related_apartment'),
         ).get(id=apartment.id)
 
         return apartment

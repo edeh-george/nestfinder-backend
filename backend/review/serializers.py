@@ -16,9 +16,10 @@ class ReviewSerializer(serializers.ModelSerializer):
     def get_profile(self, obj):
         request = self.context.get('request')
         data = UserProfileSerializer(obj.user.user_profile).data
-        data['profile_picture'] = request.build_absolute_uri(
-            data['profile_picture']
-        )
+        if data['profile_picture']:
+            data['profile_picture'] = request.build_absolute_uri(
+                data['profile_picture']
+            )
         user =  get_user_model().objects.get(id=data['user'])
         data['user'] = ' '.join([user.first_name, user.last_name]) if user.first_name else user.username
         return data

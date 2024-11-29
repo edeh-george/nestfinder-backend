@@ -8,7 +8,9 @@ from . serializers import (
     UserPasswordResetSerializer,
     UserNewPasswordResetSerializer,
     UserLogoutSerializer,
-    UserEmailVerificationSerializer)
+    UserEmailVerificationSerializer,
+    UserDetailSerializer,
+    )
 from utils.send_mail import send_email, verify_token, decrypt_token
 from django.urls import reverse
 from drf_spectacular.utils import extend_schema
@@ -157,4 +159,14 @@ class LogoutView(generics.GenericAPIView):
             session = request.session
             user = request.user
             session.flush()
-            return Response({'message':f'{user.username} successfully logged out'}) 
+            return Response({'message':f'{user.username} successfully logged out'})
+
+#Note you must change the permission to authenticated
+class UserDetailView(generics.RetrieveAPIView):
+    permission_classes = [permissions.AllowAny]
+    serializer_class = UserDetailSerializer
+
+    def get_object(self):
+        id = self.kwargs.get('pk')
+        queryset = get_user_model().objects.get(id=id)
+        return queryset
