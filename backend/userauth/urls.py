@@ -7,7 +7,7 @@ app_name = "userauth"
 
 urlpatterns = [
     path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
     path('signup/', SignUpview.as_view(), name='signup'),
     re_path(r'^verify/(?P<token>[\w=-]+)/(?P<safe>[\w=-]+)$', VerifyEmailView.as_view(), name='verify'),
     path('password/reset/', UserPasswordResetRequestView.as_view(), name='reset-password'),

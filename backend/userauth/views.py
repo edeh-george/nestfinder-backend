@@ -1,4 +1,5 @@
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.exceptions import InvalidToken
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status, views, generics, permissions
@@ -17,9 +18,6 @@ from drf_spectacular.utils import extend_schema
 from django.middleware import csrf
 from django.conf import settings
 
-"""Should remember me still be in the login page or should every user have a session automatically on signing in.
-websockets should be used in gethired backend for the notifications before launch. A signal should trigger the logout view automatically when the browser is closed if remember me was not clicked.
-"""
 User = get_user_model()
 
 class VerifyEmailView(generics.GenericAPIView):
@@ -48,6 +46,16 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     @extend_schema()
     def post(self, request: Request, *args, **kwargs) -> Response:
 
+        email, password = request.data.get('email'), request.data.get('password')
+        user = User.objects.filter(email=email).first()
+        if not user:
+            return Response({'error': 'Error getting user details', 'message': 'Invalid Email'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        if not user.check_password(password):
+            return Response({'error': 'Error getting user details', 'message': 'Invalid Password'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+
         response = super().post(request, *args, **kwargs)
         if response.status_code == status.HTTP_200_OK:
             email = request.data.get('email')
@@ -58,18 +66,40 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 return Response({"email": f"Sorry {user.username}, your email is not verified. "+
                                  "Please kindly check your mail to verify your account", "link":link}, status=status.HTTP_400_BAD_REQUEST)
         response.set_cookie(
-                                    key = settings.SIMPLE_JWT['AUTH_COOKIE'], 
-                                    value = response.data["refresh"],
-                                    expires = settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'],
-                                    secure = settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
-                                    httponly = settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
-                                    samesite = settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
-                                        )
+                            key = settings.SIMPLE_JWT['AUTH_COOKIE'], 
+                            value = response.data["refresh"],
+                            expires = settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'],
+                            secure = settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                            httponly = settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                            samesite = settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
+                            )
+        
         csrf.get_token(request)
         del response.data['refresh']
-        return response 
 
-        
+        return response 
+    
+class CustomTokenRefreshView(TokenRefreshView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        if not request.data.get('refresh'):
+            refresh_token = request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE'])
+            
+            if not refresh_token:
+                return Response({'error': 'Refresh token missing'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # request.data._mutable = True
+            request.data['refresh'] = refresh_token
+            # request.data._mutable = False
+
+        try:
+            response = super().post(request, *args, **kwargs)
+            return response
+        except InvalidToken:
+            return Response({'error': 'Invalid token or token expired'}, status=status.HTTP_400_BAD_REQUEST)
+
+                
 
 class SignUpview(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
@@ -129,7 +159,6 @@ class VerifyPasswordResetView(generics.GenericAPIView):
             return Response({'message':f"{user.username}, the link has been verified you can not reset your password.",
                              "reset link": reverse("userauth:new-password", kwargs={"safe": kwargs["safe"]})},
                              status=status.HTTP_200_OK)
-                
         #If user instance returned is of type - None
         return Response({"error": "Invalid link or link expired"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -137,6 +166,7 @@ class VerifyPasswordResetView(generics.GenericAPIView):
 
 class UserPasswordResetConfirmView(generics.GenericAPIView):
     serializer_class = UserNewPasswordResetSerializer
+    permission_classes = [permissions.AllowAny]
 
     def post(self, request, *args, **kwargs):
         user = User.objects.get(pk=decrypt_token(kwargs["safe"]))
@@ -163,7 +193,7 @@ class LogoutView(generics.GenericAPIView):
 
 #Note you must change the permission to authenticated
 class UserDetailView(generics.RetrieveAPIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = UserDetailSerializer
 
     def get_object(self):

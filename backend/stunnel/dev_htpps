@@ -1,0 +1,11 @@
+pid=
+cert = /home/george/Desktop/development/nestfinder-backend/backend/stunnel/stunnel.pem
+key = /home/george/Desktop/development/nestfinder-backend/backend/stunnel/stunnel.pem
+sslVersion = TLSv1.3
+foreground = yes
+output = stunnel.log
+
+[https]
+accept = 8441
+connect = 8000
+TIMEOUTclose = 100

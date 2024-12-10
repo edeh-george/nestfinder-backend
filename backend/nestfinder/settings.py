@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "review",  
 ]
 
+SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -155,19 +156,20 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,
-    'AUTH_COOKIE': 'access_token',
+    'AUTH_COOKIE': 'refresh',
     'AUTH_COOKIE_DOMAIN': None,
-    'AUTH_COOKIE_SECURE': False if os.environ.get("DEBUG") else True,
+    # 'AUTH_COOKIE_SECURE': False if os.environ.get("DEBUG") else True,
+    'AUTH_COOKIE_SECURE': True,
     'AUTH_COOKIE_HTTP_ONLY' : True,
     'AUTH_COOKIE_PATH': '/',
-    'AUTH_COOKIE_SAMESITE': 'Lax',
+    'AUTH_COOKIE_SAMESITE': 'None',
 }
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES':(
-        # 'userauth.authentication.CustomAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
+        # 'userauth.authentication.CustomAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES':(
         'rest_framework.permissions.AllowAny',
@@ -221,7 +223,8 @@ if DEBUG:
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173"
+    "http://localhost:5173",
+    "https://7bb9-154-68-194-11.ngrok-free.app"
 ]
 
 CORS_ALLOW_METHODS = (
@@ -239,7 +242,8 @@ CORS_ALLOW_HEADERS = [
     "content-type",
     "user-agent",
     "x-csrftoken",
-    "x-requested-with",    
+    "x-requested-with",   
+    "set-cookie",
 ]
 
 CORS_ALLOW_CREDENTIALS = True

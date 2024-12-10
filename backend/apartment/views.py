@@ -15,7 +15,7 @@ from userauth.permissions import canModifyPermission
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, JSONParser
-import os, json, uuid
+import os, json
 
 
 # Create your views here.
@@ -35,10 +35,10 @@ class ApartmentFilter(django_filters.FilterSet):
             'is_leased'
         ]
 
-
+# Modify the view such that it returns an error when the seach value is not found
 class ApartmentListGenerics(generics.ListAPIView):
     permission_classes = [AllowAny]
-    # authentication_classes = [CustomAuthentication]
+    authentication_classes = [CustomAuthentication]
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter,
                        LocationFilterBackend, ApartmentFilterBackend]
     filterset_class = ApartmentFilter
@@ -55,9 +55,6 @@ class ApartmentListGenerics(generics.ListAPIView):
             
         return queryset
     
-    def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
-             
 
 class ApartmentDetailView(generics.RetrieveAPIView):
     serializer_class = ApartmentDetailSerializer
