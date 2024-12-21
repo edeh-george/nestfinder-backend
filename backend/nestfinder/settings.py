@@ -26,12 +26,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'social_django',
     "corsheaders",
     "rest_framework",
     "rest_framework_simplejwt",
     "drf_spectacular",
     "taggit",
     "userauth",
+    "social_auth",
     "userprofile",
     "apartment",
     "review",  
@@ -145,10 +147,13 @@ DATABASES = {
 }
 
 
+
 AUTHENTICATION_BACKENDS = [
     'userauth.backends.EmailBackend',
+    'social_core.backends.google.GoogleOAuth2',
     'django.contrib.auth.backends.ModelBackend'
 ]
+
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),  # Token expires in 5 minutes
@@ -164,6 +169,7 @@ SIMPLE_JWT = {
     'AUTH_COOKIE_PATH': '/',
     'AUTH_COOKIE_SAMESITE': 'None',
 }
+
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES':(
@@ -191,6 +197,7 @@ REST_FRAMEWORK = {
 
 }
 
+
 #drf_spectacular settings
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Nesfinder API',
@@ -200,8 +207,10 @@ SPECTACULAR_SETTINGS = {
     # OTHER SETTINGS
 }
 
+
 #Specifies the time limit for email verification and password reset
 PASSWORD_RESET_TIMEOUT = 6000 #limit is sent to 10mins
+
 
 #EMAIL CONFIGURATION
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
@@ -216,6 +225,7 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 # MEDIA FILES CONFIGURATION FOR DEVELOPMENT
 MEDIA_URL = '/media/'  # URL for accessing media files
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media') 
+
 
 # CORS HEADERS SETTING
 if DEBUG:
@@ -244,6 +254,32 @@ CORS_ALLOW_HEADERS = [
     "x-csrftoken",
     "x-requested-with",   
     "set-cookie",
+    'referer'
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+
+#SOCIAL AUTH CONFIGURATION
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get("GOOGLE_CLIENT_ID")
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
+SOCIAL_AUTH_GOOGLE_OAUTH2_WHITELISTED_REDIRECT_URIS = ['http://127.0.0.1:8000/complete/google-oauth2/']
+SOCIAL_AUTH_USERNAME_IS_FULL_EMAIL = True
+SOCIAL_AUTH_GOOGLE_OAUTH2_AUTH_EXTRA_ARGUMENTS = {
+    'access_type': 'offline',
+    'prompt': 'consent',
+}
+SOCIAL_AUTH_PIPELINE = (
+    'social_core.pipeline.social_auth.social_details',
+    'social_core.pipeline.social_auth.social_uid',
+    'social_core.pipeline.social_auth.social_user',
+    'social_core.pipeline.user.get_username',
+    'social_core.pipeline.social_auth.associate_by_email',
+    'social_core.pipeline.user.create_user',
+    'social_core.pipeline.social_auth.associate_user',
+    'social_core.pipeline.social_auth.load_extra_data',
+    'social_core.pipeline.user.user_details',
+    'social_auth.pipeline.save_tokens',
+    'social_auth.pipeline.store_token_in_cookies',
+)
+
