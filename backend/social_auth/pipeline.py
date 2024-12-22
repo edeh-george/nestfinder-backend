@@ -51,7 +51,7 @@ def store_token_in_cookies(backend, user, response, *args, **kwargs):
             response.set_cookie(
                 key = 'google_access_token',
                 value = access_token,
-                exprires = settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'],
+                expires = settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'],
                 secure = settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
                 httponly = settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
                 samesite = settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],

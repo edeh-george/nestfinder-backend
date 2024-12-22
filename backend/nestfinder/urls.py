@@ -16,8 +16,6 @@ urlpatterns = [
     path('api/v1/', include('userauth.urls')),
     path('api/v1/', include('apartment.urls')),
     path('api/v1/', include('review.urls')),
-    #Django oauth2 toolkit
-    re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     #social auth
     path('', include('social_django.urls', namespace='social')),
 ]

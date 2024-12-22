@@ -28,8 +28,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     'social_django',
     "corsheaders",
-    "rest_framework",
     "rest_framework_simplejwt",
+    "rest_framework_json_api",
     "drf_spectacular",
     "taggit",
     "userauth",
@@ -65,6 +65,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
         },
     },
@@ -139,18 +141,10 @@ AUTH_USER_MODEL = "userauth.UserModel"
 # }
 
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
-
-
 
 AUTHENTICATION_BACKENDS = [
-    'userauth.backends.EmailBackend',
     'social_core.backends.google.GoogleOAuth2',
+    'userauth.backends.EmailBackend',
     'django.contrib.auth.backends.ModelBackend'
 ]
 
@@ -283,3 +277,5 @@ SOCIAL_AUTH_PIPELINE = (
     'social_auth.pipeline.store_token_in_cookies',
 )
 
+SOCIAL_LOGIN_REDIRECT_URL = '/'
+SOCIAL_LOGOUT_REDIRECT_URL = '/token'
