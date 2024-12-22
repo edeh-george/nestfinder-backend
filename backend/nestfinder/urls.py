@@ -1,9 +1,8 @@
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, re_path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from django.conf import settings
 from django.conf.urls.static import static
-
 
 
 urlpatterns = [
@@ -17,8 +16,12 @@ urlpatterns = [
     path('api/v1/', include('userauth.urls')),
     path('api/v1/', include('apartment.urls')),
     path('api/v1/', include('review.urls')),
+    #social auth
+    path('', include('social_django.urls', namespace='social')),
 ]
 
 # Serve media files in development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
