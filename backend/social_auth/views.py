@@ -26,7 +26,7 @@ class TokenObtainView(generics.GenericAPIView):
         if data['access']:
             if settings.SIMPLE_JWT:
                 response.set_cookie(
-                    key = 'refresh_token',
+                    key = settings.SIMPLE_JWT['AUTH_COOKIE'],
                     value = refresh,
                     expires = settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'],
                     secure = settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
