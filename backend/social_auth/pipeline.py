@@ -1,9 +1,5 @@
 import requests
 from social_core.exceptions import AuthException
-from django.http import HttpResponse
-from django.conf import settings
-from rest_framework import status
-from rest_framework.response import Response
 
 
 class InvalidToken(AuthException):
@@ -41,20 +37,5 @@ def save_tokens(backend, user, response, *args, **kwargs):
 
 
 
-def store_token_in_cookies(backend, user, response, *args, **kwargs):
-    response = kwargs.get('response', HttpResponse())
-    social = user.social_auth.filter(provider=backend.name).order_by('id').first()
-    access_token = social.extra_data.get('access_token')
 
-    if access_token:
-        if settings.SIMPLE_JWT:
-            response.set_cookie(
-                key = 'google_access_token',
-                value = access_token,
-                expires = settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'],
-                secure = settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
-                httponly = settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
-                samesite = settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
-                path = settings.SIMPLE_JWT['AUTH_COOKIE_PATH'],
-            )
          

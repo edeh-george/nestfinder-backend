@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     'social_django',
     "corsheaders",
+    "rest_framework",
     "rest_framework_simplejwt",
     "rest_framework_json_api",
     "drf_spectacular",
@@ -151,17 +152,17 @@ AUTHENTICATION_BACKENDS = [
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),  # Token expires in 5 minutes
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),    # Refresh token expires in 1 day
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=3),    # Refresh token expires in 1 day
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,
     'AUTH_COOKIE': 'refresh',
     'AUTH_COOKIE_DOMAIN': None,
-    # 'AUTH_COOKIE_SECURE': False if os.environ.get("DEBUG") else True,
-    'AUTH_COOKIE_SECURE': True,
+    'AUTH_COOKIE_SECURE': False if os.environ.get("DEBUG") else True,
+    # 'AUTH_COOKIE_SECURE': True,
     'AUTH_COOKIE_HTTP_ONLY' : True,
     'AUTH_COOKIE_PATH': '/',
-    'AUTH_COOKIE_SAMESITE': 'None',
+    'AUTH_COOKIE_SAMESITE': 'Lax',
 }
 
 
@@ -274,8 +275,8 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.load_extra_data',
     'social_core.pipeline.user.user_details',
     'social_auth.pipeline.save_tokens',
-    'social_auth.pipeline.store_token_in_cookies',
 )
 
-SOCIAL_LOGIN_REDIRECT_URL = '/'
-SOCIAL_LOGOUT_REDIRECT_URL = '/token'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
