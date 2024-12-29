@@ -2,7 +2,7 @@ from rest_framework import serializers
 from . models import Apartment
 from taggit.serializers import TagListSerializerField
 from django.contrib.auth import get_user_model
-
+from django.conf import settings
 #To reduce load media files are added in the gitignore, you should consider storing links to the images instead
 LOCATION = [
     ('ODI', 'Odim'),
@@ -20,7 +20,13 @@ class ApartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Apartment
         fields = '__all__'
-    
+
+    #This method is used for development purposes only
+    if settings.DEBUG:
+        def to_representation(self, instance):
+            ret = super().to_representation(instance)
+            ret['image'] = ret['image'].replace('http://', 'https://')
+            return ret
 
 class ApartmentDetailSerializer(serializers.ModelSerializer):
     image_url_list = serializers.SerializerMethodField()

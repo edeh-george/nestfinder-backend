@@ -1,6 +1,6 @@
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.conf import settings
-
+import requests
 from rest_framework.authentication import CSRFCheck
 from rest_framework import exceptions
 
@@ -15,6 +15,16 @@ def enforce_csrf(request):
     if reason:
         # CSRF failed, bail with explicit error message
         raise exceptions.PermissionDenied('CSRF Failed: %s' % reason)
+    
+
+def get_access_token(refresh, request):
+    url = 'http://localhost:8000/api/v1/token/refresh/'
+    response = requests.post(url=url, data={'refresh': refresh})
+    if response.status_code == 200:
+        response_data= response.json()
+        return response_data.get('access')
+    else:
+        exceptions.AuthenticationFailed("Failed to refresh access token")
 
 class CustomAuthentication(JWTAuthentication):
     
@@ -27,7 +37,10 @@ class CustomAuthentication(JWTAuthentication):
             raw_token = self.get_raw_token(header)
         if raw_token is None:
             return None
-
-        validated_token = self.get_validated_token(raw_token)
+        try:
+            validated_token = self.get_validated_token(get_access_token(raw_token, request))
+        except exceptions.AuthenticationFailed as e:
+            raise exceptions.AuthenticationFailed({'error': 'token validation failed', 
+                                                   'message': str(e)})
         enforce_csrf(request)
         return self.get_user(validated_token), validated_token
