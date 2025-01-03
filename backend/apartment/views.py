@@ -18,6 +18,18 @@ from rest_framework.parsers import MultiPartParser, JSONParser
 import os, json
 
 
+from rest_framework.pagination import LimitOffsetPagination
+
+class ApartmentPagination(LimitOffsetPagination):
+    def get_paginated_response(self, data):
+        return Response({
+            'count': self.count,
+            'next': self.get_next_link(),
+            'previous': self.get_previous_link(),
+            'page_size': self.limit,
+            'results': data
+        })
+
 # Create your views here.
 class ApartmentFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(field_name='name', lookup_expr='icontains')
@@ -39,6 +51,7 @@ class ApartmentFilter(django_filters.FilterSet):
 class ApartmentListGenerics(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CustomAuthentication]
+    pagination_class = ApartmentPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter,
                        LocationFilterBackend, ApartmentFilterBackend]
     filterset_class = ApartmentFilter

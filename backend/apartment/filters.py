@@ -9,8 +9,9 @@ class LocationFilterBackend(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         location_param = request.query_params.get('location', '').lower()
         location_abbrev = LOCATION_MAP.get(location_param)
+        print(location_abbrev)
         if location_abbrev:
-            queryset = queryset.filter(location=location_abbrev)
+            queryset = queryset.filter(location__icontains = location_abbrev)
         return queryset
  
  
