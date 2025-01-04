@@ -28,8 +28,10 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     'social_django',
     "corsheaders",
+    "rest_framework",
     "rest_framework_simplejwt",
     "rest_framework_json_api",
+    "django_filters",
     "drf_spectacular",
     "taggit",
     "userauth",
@@ -148,10 +150,15 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend'
 ]
 
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SECURE = True
+
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),  # Token expires in 5 minutes
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),    # Refresh token expires in 1 day
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),  # Token expires in 10 minutes
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=3),    # Refresh token expires in 3 days
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,
@@ -224,12 +231,11 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # CORS HEADERS SETTING
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
-
+else:
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:5173",
+    ]
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "https://7bb9-154-68-194-11.ngrok-free.app"
-]
 
 CORS_ALLOW_METHODS = (
     "DELETE",
@@ -250,7 +256,7 @@ CORS_ALLOW_HEADERS = [
     "set-cookie",
     'referer'
 ]
-
+SECURE_REFERRER_POLICY = 'no-referrer-when-downgrade'  # or 'strict-origin-when-cross-origin'
 CORS_ALLOW_CREDENTIALS = True
 
 
@@ -274,8 +280,8 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.load_extra_data',
     'social_core.pipeline.user.user_details',
     'social_auth.pipeline.save_tokens',
-    'social_auth.pipeline.store_token_in_cookies',
 )
 
-SOCIAL_LOGIN_REDIRECT_URL = '/'
-SOCIAL_LOGOUT_REDIRECT_URL = '/token'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+

@@ -16,6 +16,7 @@ urlpatterns = [
     path('api/v1/', include('userauth.urls')),
     path('api/v1/', include('apartment.urls')),
     path('api/v1/', include('review.urls')),
+    path('', include('social_auth.urls')),
     #social auth
     path('', include('social_django.urls', namespace='social')),
 ]

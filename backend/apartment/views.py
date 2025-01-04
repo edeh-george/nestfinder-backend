@@ -37,7 +37,7 @@ class ApartmentFilter(django_filters.FilterSet):
 
 # Modify the view such that it returns an error when the seach value is not found
 class ApartmentListGenerics(generics.ListAPIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     authentication_classes = [CustomAuthentication]
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter,
                        LocationFilterBackend, ApartmentFilterBackend]

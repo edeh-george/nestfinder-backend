@@ -84,22 +84,22 @@ class CustomTokenRefreshView(TokenRefreshView):
 
     def post(self, request, *args, **kwargs):
         if not request.data.get('refresh'):
-            refresh_token = request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE'])
+            refresh_token = request.COOKIES.get("refresh")
             
             if not refresh_token:
                 return Response({'error': 'Refresh token missing'}, status=status.HTTP_400_BAD_REQUEST)
             
-            # request.data._mutable = True
-            request.data['refresh'] = refresh_token
-            # request.data._mutable = False
+            data = request.data.copy()
+            data['refresh'] = refresh_token
+            request._full_data = data
 
         try:
             response = super().post(request, *args, **kwargs)
             return response
         except InvalidToken:
             return Response({'error': 'Invalid token or token expired'}, status=status.HTTP_400_BAD_REQUEST)
-
-                
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class SignUpview(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
