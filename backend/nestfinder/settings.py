@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     "social_auth",
     "userprofile",
     "apartment",
-    "review",  
+    "review",
+    "payment",  
 ]
 
 SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
