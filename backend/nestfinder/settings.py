@@ -158,14 +158,13 @@ CSRF_COOKIE_SECURE = True
 
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),  # Token expires in 10 minutes
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=3),    # Refresh token expires in 3 days
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10), 
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=3), 
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,
     'AUTH_COOKIE': 'refresh',
     'AUTH_COOKIE_DOMAIN': None,
-    # 'AUTH_COOKIE_SECURE': False if os.environ.get("DEBUG") else True,
     'AUTH_COOKIE_SECURE': True,
     'AUTH_COOKIE_HTTP_ONLY' : True,
     'AUTH_COOKIE_PATH': '/',
@@ -257,9 +256,13 @@ CORS_ALLOW_HEADERS = [
     "set-cookie",
     'referer'
 ]
-SECURE_REFERRER_POLICY = 'no-referrer-when-downgrade'  # or 'strict-origin-when-cross-origin'
-CORS_ALLOW_CREDENTIALS = True
+SECURE_REFERRER_POLICY = "no-referrer-when-downgrade" #'strict-origin-when-cross-origin' 
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://localhost:8441",
+    "http://localhost:8000",
+    "http://localhost:5173",
+]
 
 #SOCIAL AUTH CONFIGURATION
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get("GOOGLE_CLIENT_ID")

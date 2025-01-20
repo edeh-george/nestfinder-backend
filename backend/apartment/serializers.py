@@ -61,6 +61,8 @@ class ApartmentDetailSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         ret = super().to_representation(instance)
         ret['location'] = location_dict.get(ret['location'])
-        ret['uploaded_by'] = get_user_model().objects.get(id=ret['uploaded_by']).username
+        user = get_user_model().objects.get(id=ret['uploaded_by'])
+        ret['uploaded_by'] = user.username
+        ret['uploader_id'] = user.id
 
         return ret
