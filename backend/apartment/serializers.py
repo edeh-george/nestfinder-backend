@@ -3,6 +3,7 @@ from . models import Apartment
 from taggit.serializers import TagListSerializerField
 from django.contrib.auth import get_user_model
 from django.conf import settings
+import os
 #To reduce load media files are added in the gitignore, you should consider storing links to the images instead
 LOCATION = [
     ('ODI', 'Odim'),
@@ -21,9 +22,8 @@ class ApartmentSerializer(serializers.ModelSerializer):
         model = Apartment
         fields = '__all__'
 
-    #This method is used for development purposes only
-    if settings.DEBUG:
-        def to_representation(self, instance):
+    def to_representation(self, instance):
+        if settings.DEBUG:
             ret = super().to_representation(instance)
             ret['image'] = ret['image'].replace('http://', 'https://')
             return ret
@@ -43,7 +43,8 @@ class ApartmentDetailSerializer(serializers.ModelSerializer):
                 request.build_absolute_uri(image.images.url)
                 for image in obj.image_list if image.images
                 ]
-            
+            if os.getenv("DEBUG"):
+                image_urls = [image.replace('http://', 'https://') for image in image_urls]
             return image_urls
         
         image_urls = [
@@ -64,5 +65,7 @@ class ApartmentDetailSerializer(serializers.ModelSerializer):
         user = get_user_model().objects.get(id=ret['uploaded_by'])
         ret['uploaded_by'] = user.username
         ret['uploader_id'] = user.id
+        if os.getenv("DEBUG"):
+            ret['image'] = ret['image'].replace('http://', 'https://')
 
         return ret

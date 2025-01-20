@@ -17,6 +17,7 @@ from django.urls import reverse
 from drf_spectacular.utils import extend_schema
 from django.middleware import csrf
 from django.conf import settings
+from .authentication import CustomAuthentication
 
 User = get_user_model()
 
@@ -194,6 +195,7 @@ class LogoutView(generics.GenericAPIView):
 #Note you must change the permission to authenticated
 class UserDetailView(generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [CustomAuthentication]
     serializer_class = UserDetailSerializer
 
     def get_object(self):
