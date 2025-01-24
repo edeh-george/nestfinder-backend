@@ -16,15 +16,16 @@ class PasswordField(serializers.CharField):
         super().__init__(**kwargs)
 
 PasswordValidator = RegexValidator(
-                        regex=r'^[\w+/\-]*$',  # Only letters and numbers allowed
+                        regex=r'^[\\w+/\-]*$',  # Only letters and numbers allowed
                         message="Username must contain only letters and numbers or special characters (\, /, -, _)",
                         code='invalid_password'
                     )
 
 
 class UserEmailVerificationSerializer(serializers.Serializer):
-    token = serializers.CharField()
-    safe = serializers.CharField()
+    # token = serializers.CharField()
+    # safe = serializers.CharField()
+    pass
 
 class UserSignUpSerializer(serializers.Serializer):
 

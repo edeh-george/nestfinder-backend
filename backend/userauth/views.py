@@ -18,23 +18,38 @@ from drf_spectacular.utils import extend_schema
 from django.middleware import csrf
 from django.conf import settings
 from .authentication import CustomAuthentication
+import requests
+import os
 
 User = get_user_model()
 
 class VerifyEmailView(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]
+    authentication_classes = [CustomAuthentication]
     serializer_class = UserEmailVerificationSerializer
     
     @extend_schema()
     def post(self, request: Request, *args, **kwargs):
-        serializer = UserEmailVerificationSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-        user = verify_token(token=data['token'], safe=data['safe'])
-        if isinstance(user, User):
-            user.email_verified = True
-            user.save(force_update= True, update_fields=["email_verified"])
-            return Response({'detail':f"{user.username}, you email is successfully verified."})
+        try:
+            request_data = {'safe':kwargs['safe'], 'token': kwargs['token']}
+            serializer = UserEmailVerificationSerializer(data=request_data)
+            serializer.is_valid(raise_exception=True)
+            data = serializer.validated_data
+            response = requests.post(url=f"https://{request.get_host()}/{os.getenv("API_VERSION")}mail/verify-token/",
+                                params={
+                                    "safe": data["safe"],
+                                    "token": data["token"]
+                                },
+                                verify=False)
+            
+            parsed_response = response.json()
+            user = User.objects.filter(email=parsed_response.get('email')).first()
+            if isinstance(user, User):
+                user.email_verified = True
+                user.save(force_update= True, update_fields=["email_verified"])
+                return Response({'detail':f"{user.username}, you email is successfully verified."})
+        except Exception as e:
+            return Response({'error': str(e), 'message': parsed_response}, status=status.HTTP_400_BAD_REQUEST)
         
         #If user instance returned is of type - None
         return Response({"error": "Nothing was returned"}, status=status.HTTP_400_BAD_REQUEST)
@@ -74,11 +89,17 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                             httponly = settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
                             samesite = settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
                             )
+
+        if request.query_params.get("remember_me"):
+            request.session.set_expiry(0)
         
         csrf.get_token(request)
         del response.data['refresh']
+        response.data['user'] = user.username
 
         return response 
+    
+
     
 class CustomTokenRefreshView(TokenRefreshView):
     permission_classes = [permissions.AllowAny]
@@ -101,6 +122,8 @@ class CustomTokenRefreshView(TokenRefreshView):
             return Response({'error': 'Invalid token or token expired'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+
 
 class SignUpview(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
@@ -109,19 +132,18 @@ class SignUpview(generics.CreateAPIView):
     @extend_schema()
     def create(self, request, *args, **kwargs):
         serializer = UserSignUpSerializer(data=request.data)
-        try:
-            serializer.is_valid(raise_exception=True)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        user =serializer.save()
-        #Implement logic to send mail for user email verification
-        response = send_email(request=request, user=user, mail_type='signup')
-        if isinstance(response, Response):
-            return response
-
-        return Response({"message": f"{user.first_name}, your account has been successfully created." +
-                         "Check your mail to verify your account"},
-                        status=status.HTTP_200_OK)
+    
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        response = requests.post(url=f"https://{request.get_host()}/{os.getenv("API_VERSION")}mail/user-auth/",
+                                params={"mail_type": "signup", "email": serializer.validated_data['email']},
+                                verify=False)
+        if response.status_code != 200:
+            user.delete()
+            return Response({"error": response}, status=status.HTTP_400_BAD_REQUEST)
+    
+        return Response({"data": response.json()}, status=response.status_code)
+    
 
 
 
@@ -200,5 +222,8 @@ class UserDetailView(generics.RetrieveAPIView):
 
     def get_object(self):
         id = self.kwargs.get('pk')
-        queryset = get_user_model().objects.get(id=id)
+        if id:
+            queryset = get_user_model().objects.get(id=id)
+        else:
+            queryset = self.request.user
         return queryset

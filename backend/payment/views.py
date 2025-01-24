@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework import generics
 from django.shortcuts import get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from userauth.authentication import CustomAuthentication
 from rest_framework.response import Response
@@ -21,7 +22,7 @@ class InitiatePayment(generics.GenericAPIView):
     authentication_classes = [CustomAuthentication]
     serializer_class = PaymentInitSerializer
 
-    # @csrf_exempt
+    @csrf_exempt
     def post(self, request, *args, **kwargs):
         try:
             user = request.user
@@ -93,6 +94,7 @@ class VerifyPayment(generics.GenericAPIView):
 @api_view(["GET"])
 @permission_classes([IsAdminUser])
 @authentication_classes([CustomAuthentication])
+@csrf_exempt
 def list_transactions(request):
     url = "https://api.paystack.co/transaction"
     headers = {"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}"}
@@ -124,6 +126,7 @@ def initiate_payment(request):
                     {"error": "The email provided does not match the logged-in user."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+            return Response({'data': request.cookies.get('refresh')}, status=status.HTTP_200_OK)
 
             payment = Payment.objects.create(user=user, email=email, amount=amount)
 
