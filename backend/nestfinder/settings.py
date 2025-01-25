@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "rest_framework_json_api",
     "django_filters",
+    "django_extensions",
     "drf_spectacular",
     "taggit",
     "userauth",
@@ -39,7 +40,8 @@ INSTALLED_APPS = [
     "userprofile",
     "apartment",
     "review",
-    "payment",  
+    "payment",
+    "mail", 
 ]
 
 SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
@@ -81,10 +83,22 @@ WSGI_APPLICATION = "nestfinder.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
+#     }
+# }
+
+
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'HOST': os.environ.get('DB_HOST'),
+        'PORT': os.environ.get('PORT'),          
     }
 }
 
@@ -124,6 +138,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -131,18 +146,6 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "userauth.UserModel"
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': os.environ.get('DB_NAME'),
-#         'USER': os.environ.get('DB_USER'),
-#         'PASSWORD': os.environ.get('DB_PASSWORD'),
-#         'HOST': os.environ.get('DB_HOST'),
-#         'PORT': os.environ.get('PORT'),          
-#     }
-# }
-
 
 
 AUTHENTICATION_BACKENDS = [
@@ -164,7 +167,7 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,
     'AUTH_COOKIE': 'refresh',
-    'AUTH_COOKIE_DOMAIN': None,
+    'AUTH_COOKIE_DOMAIN': '.vercel.app',
     'AUTH_COOKIE_SECURE': True,
     'AUTH_COOKIE_HTTP_ONLY' : True,
     'AUTH_COOKIE_PATH': '/',
@@ -234,6 +237,7 @@ if DEBUG:
 else:
     CORS_ALLOWED_ORIGINS = [
         "http://localhost:5173",
+        "https://nestfinder-jade.vercel.app",
     ]
 CORS_ALLOW_CREDENTIALS = True
 
@@ -259,10 +263,16 @@ CORS_ALLOW_HEADERS = [
 SECURE_REFERRER_POLICY = "no-referrer-when-downgrade" #'strict-origin-when-cross-origin' 
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://localhost:8441",
+    "https://localhost:8443",
     "http://localhost:8000",
     "http://localhost:5173",
+    "https://nestfinder-jade.vercel.app"
 ]
+
+CORS_ORIGIN_WHITELIST = [
+    'https://nestfinder-jade.vercel.app',
+]
+
 
 #SOCIAL AUTH CONFIGURATION
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get("GOOGLE_CLIENT_ID")
@@ -289,3 +299,8 @@ SOCIAL_AUTH_PIPELINE = (
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
+#Cross-stie request forgery settings
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SAMESITE = 'None'

@@ -18,6 +18,7 @@ urlpatterns = [
     path(f"{version}", include('apartment.urls')),
     path(f"{version}", include('review.urls')),
     path(f"{version}", include('payment.urls')),
+    path(f"{version}", include('mail.urls')),
     # path('', include('social_auth.urls')),
     #social auth
     path('', include('social_django.urls', namespace='social')),
@@ -26,3 +27,5 @@ urlpatterns = [
 # Serve media files in development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+        

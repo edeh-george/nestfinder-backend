@@ -1,8 +1,9 @@
 import os
 from typing import Union
-from dotenv import load_dotenv
 from urllib.parse import urlparse, unquote
+from dotenv import load_dotenv
 load_dotenv()
+
 from django.contrib.sessions.backends.db import SessionStore
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
