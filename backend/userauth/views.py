@@ -201,18 +201,24 @@ class UserPasswordResetConfirmView(generics.GenericAPIView):
         return Response({'message': 'User password successfully updated'}, status=status.HTTP_200_OK)
 
 
-
+from django.contrib.auth import logout
 class LogoutView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [CustomAuthentication]
     serializer_class = UserLogoutSerializer
 
     @extend_schema()
     def post(self, request):
         if hasattr(request, 'session'):
-            session = request.session
             user = request.user
-            session.flush()
-            return Response({'message':f'{user.username} successfully logged out'})
+            response = Response({'message': f'{user.username} successfully logged out'}, status=status.HTTP_200_OK)
+            logout(request)
+            response.set_cookie(key='refresh', value="",path='/', httponly=True, samesite='None', secure=True, max_age=0)
+            response.delete_cookie('csrftoken', path='/')
+
+            
+            return response
+        return Response({'error': 'No session found'}, status=status.HTTP_400_BAD_REQUEST)
 
 #Note you must change the permission to authenticated
 class UserDetailView(generics.RetrieveAPIView):
