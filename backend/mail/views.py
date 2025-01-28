@@ -44,7 +44,6 @@ def get_user(user_id: str):
 
 class sendAuthMail(APIView):
     serializer_class = MailSerializer
-    # authentication_classes = [CustomAuthentication]
     permission_classes = [AllowAny]
 
 
@@ -75,6 +74,8 @@ class sendAuthMail(APIView):
             msg.send()
         except ValidationError as e:
             return Response(e.messages, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"message": "E-mail has been sent" , "link": verification_link},
                         status= status.HTTP_200_OK)
