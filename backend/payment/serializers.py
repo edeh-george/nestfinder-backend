@@ -11,3 +11,6 @@ class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = '__all__'
+        
+class PaymentVerifySerializer(serializers.Serializer):
+    reference = serializers.CharField(required=True)
