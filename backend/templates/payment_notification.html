@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            padding: 10px 0;
+        }
+        .header img {
+            width: 100px;
+        }
+        .content {
+            padding: 20px;
+        }
+        .button {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 10px;
+            text-align: center;
+            background-color: #007BFF;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .footer {
+            text-align: center;
+            padding: 10px;
+            color: #888888;
+        }
+        h2{
+            text-align: center;
+            color: #007BFF;
+        }
+        .link_to_url{
+            color: #007BFF;
+
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Payment Confirmation</h2>
+        <p>Dear Landlord,</p>
+        <p>We are pleased to inform you that a payment has been made for the property listed under your name.</p>
+        <p><strong>Payment Details:</strong></p>
+        <ul>
+            <li><strong>Amount Paid:</strong> $[amount]</li>
+            <li><strong>Payment Date:</strong> [date]</li>
+            <li><strong>Payer Name:</strong> [payer_name]</li>
+        </ul>
+        <p>You can view the payer's profile by clicking the link below:</p>
+        <a href="[profile_link]" class="btn">View Payer's Profile</a>
+        <p>Thank you for using our platform!</p>
+    </div>
+</body>
+</html>

@@ -16,7 +16,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_bytes
 from cryptography.fernet import Fernet
 from . safe_key import generate_safe_key
-from .serializers import MailSerializer
+from .serializers import MailSerializer, LandlordMailSerializer
 # from userauth.authentication import CustomAuthentication
 
 
@@ -61,7 +61,7 @@ class sendAuthMail(APIView):
             else:
                 verification_link = f"{url_scheme}://{current_domain}/api/v1/verify/{verification_token}/{encrypted_data.decode()}" 
 
-            """Logic for sending mail alos sends mail as plain text incase html cannot be rendered"""
+            """Logic for sending mail, sends mail as plain text if html cannot be rendered"""
             html_message = render_to_string(f"{data['mail_type']}.html",
                                             {'username': user.first_name,
                                             'link': verification_link})                      
@@ -103,3 +103,32 @@ class verifyAuthToken(APIView):
         except Exception as e:
             return Response({"error": "An unexpected error occurred",
                             "details": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+class LandlordContactMail(APIView):
+    permission_classes = [AllowAny]
+    serializer_class = LandlordMailSerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            data = request.data
+            serializer = self.serializer_class(data=data)
+            serializer.is_valid(raise_exception=True)
+            html_message = render_to_string('landlord_contact.html',
+                                            {'name': data['name'],
+                                            'email': data['email'],
+                                            'message': data['message']})                      
+            plain_message = strip_tags(html_message) 
+            subject = "Landlord Contact"
+            from_email, to = os.environ.get('EMAIL_HOST_USER'), os.environ.get('LANDLORD_EMAIL')
+
+            msg = EmailMultiAlternatives(subject, plain_message, from_email, [to])
+            msg.attach_alternative(html_message, "text/html")
+            msg.send()
+        except ValidationError as e:
+            return Response(e.messages, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"message": "E-mail has been sent"},
+                        status= status.HTTP_200_OK)

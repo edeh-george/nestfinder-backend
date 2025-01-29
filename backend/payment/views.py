@@ -18,8 +18,8 @@ PAYSTACK_SECRET_KEY = os.getenv("PAYSTACK_SECRET_KEY")
 FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 class InitiatePayment(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [CustomAuthentication]
+    permission_classes = [AllowAny]
+    # authentication_classes = [CustomAuthentication]
     serializer_class = PaymentInitSerializer
 
     @csrf_exempt
