@@ -19,7 +19,7 @@ FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 class InitiatePayment(generics.GenericAPIView):
     permission_classes = [AllowAny]
-    # authentication_classes = [CustomAuthentication]
+    authentication_classes = [CustomAuthentication]
     serializer_class = PaymentInitSerializer
 
     @csrf_exempt
@@ -50,7 +50,7 @@ class InitiatePayment(generics.GenericAPIView):
             payload = {
                 "email": email,
                 "amount": int(amount) * 100,  # Convert to kobo
-                "callback_url": f"http://{FRONTEND_URL}/payment/verify/",
+                "callback_url": f"{request.headers.get('Origin', 'Unknown')}/houses/",
                 "reference": payment.ref,
             }
             response = requests.post(url, headers=headers, json=payload)
@@ -126,7 +126,6 @@ def initiate_payment(request):
                     {"error": "The email provided does not match the logged-in user."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            return Response({'data': request.cookies.get('refresh')}, status=status.HTTP_200_OK)
 
             payment = Payment.objects.create(user=user, email=email, amount=amount)
 
