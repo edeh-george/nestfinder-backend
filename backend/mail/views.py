@@ -109,6 +109,7 @@ class LandlordContactMail(APIView):
     permission_classes = [AllowAny]
     serializer_class = LandlordMailSerializer
 
+
     def post(self, request, *args, **kwargs):
         try:
             data = request.data
@@ -120,7 +121,7 @@ class LandlordContactMail(APIView):
                                             'message': data['message']})                      
             plain_message = strip_tags(html_message) 
             subject = "Landlord Contact"
-            from_email, to = os.environ.get('EMAIL_HOST_USER'), os.environ.get('LANDLORD_EMAIL')
+            from_email, to = request.user.email, data.get('agentMail')
 
             msg = EmailMultiAlternatives(subject, plain_message, from_email, [to])
             msg.attach_alternative(html_message, "text/html")

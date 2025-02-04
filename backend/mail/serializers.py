@@ -10,3 +10,4 @@ class LandlordMailSerializer(serializers.Serializer):
     name = serializers.CharField()
     email = serializers.EmailField()
     message = serializers.CharField()
+    agentMail = serializers.EmailField()
