@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
 
@@ -17,12 +17,13 @@ from django.utils.encoding import force_bytes
 from cryptography.fernet import Fernet
 from . safe_key import generate_safe_key
 from .serializers import MailSerializer, LandlordMailSerializer
-# from userauth.authentication import CustomAuthentication
+from userauth.authentication import CustomAuthentication
 
 
 User = get_user_model()
 value = generate_safe_key()
 cipher = Fernet(value)
+# cipher = Fernet(b'YOUR_SECRET_KEY')
 
 
 def get_parsed_url_from_request(uri):
@@ -42,43 +43,47 @@ def get_user(user_id: str):
 
 
 
+
 class sendAuthMail(APIView):
     serializer_class = MailSerializer
+    # authentication_classes = [CustomAuthentication]  
     permission_classes = [AllowAny]
-
 
     def post(self, request, *args, **kwargs):
         try:
-            data = {'email': request.query_params.get('email'), 'mail_type': request.query_params.get('mail_type')}
+            data = {
+                'email': request.query_params.get('email'),
+                'mail_type': request.query_params.get('mail_type')
+            }
             user = User.objects.get(email=data['email'])
-            verification_token = default_token_generator.make_token(user) 
-            encrypted_data = cipher.encrypt(force_bytes(user.pk))
-            parsed_uri = get_parsed_url_from_request(request.build_absolute_uri())
-            url_scheme = parsed_uri.scheme
-            current_domain = parsed_uri.netloc
+            verification_token = default_token_generator.make_token(user)
+            encrypted_data = cipher.encrypt(force_bytes(user.pk)) 
+            parsed_uri = request.build_absolute_uri()
+            url_scheme = parsed_uri.split("://")[0] 
+            current_domain = parsed_uri.split("://")[1].split("/")[0]  
             if data['mail_type'] == 'password_reset':
-                verification_link = f"{url_scheme}://{current_domain}/api/v1/password/reset/confirm/{verification_token}/{encrypted_data.decode()}" 
+                verification_link = f"{url_scheme}://{current_domain}/api/v1/password/reset/confirm/{verification_token}/{encrypted_data.decode()}"
             else:
-                verification_link = f"{url_scheme}://{current_domain}/api/v1/verify/{verification_token}/{encrypted_data.decode()}" 
-
-            """Logic for sending mail, sends mail as plain text if html cannot be rendered"""
-            html_message = render_to_string(f"{data['mail_type']}.html",
-                                            {'username': user.first_name,
-                                            'link': verification_link})                      
-            plain_message = strip_tags(html_message) 
+                verification_link = f"{url_scheme}://{current_domain}/api/v1/verify/{verification_token}/{encrypted_data.decode()}"
+            html_message = render_to_string(
+                f"{data['mail_type']}.html",
+                {'username': user.first_name, 'link': verification_link}
+            )
+            plain_message = strip_tags(html_message)  
             subject = "Password Reset" if data['mail_type'] == 'password_reset' else "Verify your email"
             from_email, to = os.environ.get('EMAIL_HOST_USER'), user.email
-
             msg = EmailMultiAlternatives(subject, plain_message, from_email, [to])
             msg.attach_alternative(html_message, "text/html")
             msg.send()
-        except ValidationError as e:
-            return Response(e.messages, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({"message": "E-mail has been sent" , "link": verification_link},
-                        status= status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"error": "User not found."}, status=status.HTTP_400_BAD_REQUEST)
+        except ValidationError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({"message": "E-mail has been sent", "link": verification_link}, status=status.HTTP_200_OK)
     
 
 
@@ -107,6 +112,7 @@ class verifyAuthToken(APIView):
 
 class LandlordContactMail(APIView):
     permission_classes = [AllowAny]
+    authentication_classes = [CustomAuthentication]
     serializer_class = LandlordMailSerializer
 
 
@@ -120,14 +126,17 @@ class LandlordContactMail(APIView):
                                             'email': data['email'],
                                             'message': data['message']})                      
             plain_message = strip_tags(html_message) 
-            subject = "Landlord Contact"
-            from_email, to = request.user.email, data.get('agentMail')
+            subject = f"Messae from {data['name']}"
+            user = User.objects.get(email=data['email'])
+            from_email, to = user.email, data.get('agentMail')
 
             msg = EmailMultiAlternatives(subject, plain_message, from_email, [to])
             msg.attach_alternative(html_message, "text/html")
             msg.send()
         except ValidationError as e:
             return Response(e.messages, status=status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
+            return Response({"error": "User not found."}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
