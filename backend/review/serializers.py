@@ -11,7 +11,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = ['comment', 'rating', 'user', 'apartment',
-                  'is_active', 'is_liked', 'created', 'profile']
+                  'is_active', 'likes', 'dislikes', 'created', 'profile']
     
     def get_profile(self, obj):
         request = self.context.get('request')

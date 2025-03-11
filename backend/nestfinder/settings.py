@@ -62,7 +62,7 @@ ROOT_URLCONF = "nestfinder.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, 'utils', 'templates')],
+        "DIRS": [os.path.join(BASE_DIR, 'templates')],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -183,7 +183,6 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PERMISSION_CLASSES':(
         'rest_framework.permissions.AllowAny',
-        'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_RENDERER_CLASSES':(
         'rest_framework.renderers.JSONRenderer',
@@ -255,17 +254,18 @@ CORS_ALLOW_HEADERS = [
     "authorization",
     "content-type",
     "user-agent",
-    "x-csrf-token",
+    "x-csrftoken",
     "x-requested-with",   
     "set-cookie",
     'referer'
 ]
+
 SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin' # "no-referrer-when-downgrade"
 
 CSRF_TRUSTED_ORIGINS = [
     "https://localhost:8443",
-    "http://localhost:8000",
     "http://localhost:5173",
+    "https://localhost:5173",
     "https://nestfinder-jade.vercel.app"
 ]
 

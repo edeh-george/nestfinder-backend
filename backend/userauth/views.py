@@ -43,13 +43,14 @@ class VerifyEmailView(generics.GenericAPIView):
                                 verify=False)
             
             parsed_response = response.json()
-            user = User.objects.filter(email=parsed_response.get('email')).first()
+            email = parsed_response.get('email')
+            user = User.objects.filter(email=email).first()
             if isinstance(user, User):
                 user.email_verified = True
                 user.save(force_update= True, update_fields=["email_verified"])
                 return Response({'detail':f"{user.username}, you email is successfully verified."})
         except Exception as e:
-            return Response({'error': str(e), 'message': parsed_response}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': str(e), 'response': response}, status=status.HTTP_400_BAD_REQUEST)
         
         #If user instance returned is of type - None
         return Response({"error": "Nothing was returned"}, status=status.HTTP_400_BAD_REQUEST)
@@ -131,16 +132,19 @@ class SignUpview(generics.CreateAPIView):
 
     @extend_schema()
     def create(self, request, *args, **kwargs):
-        serializer = UserSignUpSerializer(data=request.data)
-    
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        response = requests.post(url=f"https://{request.get_host()}/{os.getenv("API_VERSION")}mail/user-auth/",
-                                params={"mail_type": "signup", "email": serializer.validated_data['email']},
-                                verify=False)
-        if response.status_code != 200:
-            user.delete()
-            return Response({"error": response}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            serializer = UserSignUpSerializer(data=request.data)
+        
+            serializer.is_valid(raise_exception=True)
+            user = serializer.save()
+            response = requests.post(url=f"https://{request.get_host()}/{os.getenv("API_VERSION")}mail/user-auth/",
+                                    params={"mail_type": "signup", "email": serializer.validated_data['email']},
+                                    verify=False)
+            if response.status_code != 200:
+                user.delete()
+                return Response({"error": response}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
         return Response({"data": response.json()}, status=response.status_code)
     
