@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import Token, RefreshToken
 
 
-class TokenObtainView(generics.GenericAPIView):
+class SocialTokenObtainView(generics.GenericAPIView):
     permission_classes = [AllowAny]
     token_class = RefreshToken
 
