@@ -1,24 +1,29 @@
-from rest_framework import status
-from rest_framework import generics
+import os
+
+import requests
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
-from userauth.authentication import CustomAuthentication
+from rest_framework import generics, status
+from rest_framework.decorators import (
+    api_view,
+    authentication_classes,
+    permission_classes,
+)
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes, authentication_classes
+
 from .models import Payment
 from .serializers import (
-    PaymentSerializer, 
     PaymentInitSerializer,
-    PaymentVerifySerializer)
-import requests
-import os
+    PaymentSerializer,
+    PaymentVerifySerializer,
+)
 
 PAYSTACK_SECRET_KEY = os.getenv("PAYSTACK_SECRET_KEY")
 FRONTEND_URL = os.getenv("FRONTEND_URL")
 
+
 class InitiatePayment(generics.GenericAPIView):
-    authentication_classes = [CustomAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = PaymentInitSerializer
 
@@ -26,8 +31,8 @@ class InitiatePayment(generics.GenericAPIView):
         user = request.user
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        email = serializer.validated_data.get('email')
-        amount = serializer.validated_data.get('amount')
+        email = serializer.validated_data.get("email")
+        amount = serializer.validated_data.get("amount")
 
         if not email or not amount:
             return Response(
@@ -56,16 +61,15 @@ class InitiatePayment(generics.GenericAPIView):
 
 
 class GetPaymentView(generics.RetrieveAPIView):
-    authentication_classes = [CustomAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = PaymentSerializer
 
     def get_object(self, *args, **kwargs):
-        payment = get_object_or_404(Payment, ref=self.kwargs['reference'])
+        payment = get_object_or_404(Payment, ref=self.kwargs["reference"])
         return payment
 
+
 class VerifyPayment(generics.GenericAPIView):
-    authentication_classes = [CustomAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = PaymentVerifySerializer
 
@@ -79,12 +83,11 @@ class VerifyPayment(generics.GenericAPIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({"status":payment.verified}, status=status.HTTP_200_OK)
-    
+        return Response({"status": payment.verified}, status=status.HTTP_200_OK)
+
 
 @api_view(["GET"])
 @permission_classes([IsAdminUser])
-@authentication_classes([CustomAuthentication])
 @csrf_exempt
 def list_transactions(request):
     url = "https://api.paystack.co/transaction"
