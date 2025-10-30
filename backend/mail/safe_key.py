@@ -1,11 +1,13 @@
-from datetime import datetime, timedelta
-from cryptography.fernet import Fernet
 import os
+from datetime import datetime, timedelta
+
+from cryptography.fernet import Fernet
 from dotenv import load_dotenv
+
 load_dotenv()
 
-datetime_file = './last_access.txt'
-key_file = './key.txt'
+datetime_file = "./last_access.txt"
+key_file = "./key.txt"
 
 
 class AccessTimeManager:
@@ -34,24 +36,24 @@ class AccessTimeManager:
                     self._last_access = datetime.fromisoformat(content[-1].strip())
                 file.close()
         else:
-            with open(self.datetime_file, 'w') as file:
+            with open(self.datetime_file, "w") as file:
                 self._last_access = datetime.now()
                 self.save_access_time()
-
 
     def save_access_time(self):
         with open(self.datetime_file, "w+") as file:
             file.write(f"\n{self._last_access.isoformat()}")
             file.close()
 
+
 manager = AccessTimeManager(datetime_file)
+
 
 class KeyManager:
     def __init__(self, key_file):
         self.key_file = key_file
         self._key = None
         self.load_key()
-
 
     @property
     def key(self):
@@ -80,8 +82,10 @@ class KeyManager:
         with open(self.key_file, "w+") as file:
             file.write(f"{self._key.decode()}\n")
 
+
 key_manager = KeyManager(key_file)
 key_manager.load_key
+
 
 def generate_safe_key():
     key = key_manager.key
@@ -93,5 +97,6 @@ def generate_safe_key():
         key_manager.key = key
         manager.last_access = datetime.now()
     return key
+
 
 generate_safe_key()

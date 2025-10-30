@@ -6,22 +6,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('review', '0004_alter_review_user'),
+        ("review", "0004_alter_review_user"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='review',
-            name='is_liked',
+            model_name="review",
+            name="is_liked",
         ),
         migrations.AddField(
-            model_name='review',
-            name='dislikes',
-            field=models.PositiveBigIntegerField(default='', null=True),
+            model_name="review",
+            name="dislikes",
+            field=models.PositiveBigIntegerField(default="", null=True),
         ),
         migrations.AddField(
-            model_name='review',
-            name='likes',
-            field=models.PositiveBigIntegerField(default='', null=True),
+            model_name="review",
+            name="likes",
+            field=models.PositiveBigIntegerField(default="", null=True),
         ),
     ]

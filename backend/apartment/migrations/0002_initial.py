@@ -10,19 +10,27 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('apartment', '0001_initial'),
+        ("apartment", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='apartment',
-            name='uploaded_by',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='apartments', to=settings.AUTH_USER_MODEL),
+            model_name="apartment",
+            name="uploaded_by",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="apartments",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='apartmentimage',
-            name='apartment',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='images', to='apartment.apartment'),
+            model_name="apartmentimage",
+            name="apartment",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="images",
+                to="apartment.apartment",
+            ),
         ),
     ]

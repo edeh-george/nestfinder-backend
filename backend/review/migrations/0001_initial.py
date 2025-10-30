@@ -9,21 +9,36 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('apartment', '0001_initial'),
+        ("apartment", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Review',
+            name="Review",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('comment', models.TextField(blank=True, null=True)),
-                ('rating', models.PositiveSmallIntegerField(blank=True, null=True)),
-                ('is_active', models.BooleanField(default=True)),
-                ('like', models.PositiveIntegerField(default=0)),
-                ('dislike', models.PositiveIntegerField(default=0)),
-                ('created', models.DateTimeField(auto_now_add=True)),
-                ('apartment', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='apartment', to='apartment.apartment')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("comment", models.TextField(blank=True, null=True)),
+                ("rating", models.PositiveSmallIntegerField(blank=True, null=True)),
+                ("is_active", models.BooleanField(default=True)),
+                ("like", models.PositiveIntegerField(default=0)),
+                ("dislike", models.PositiveIntegerField(default=0)),
+                ("created", models.DateTimeField(auto_now_add=True)),
+                (
+                    "apartment",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="apartment",
+                        to="apartment.apartment",
+                    ),
+                ),
             ],
         ),
     ]

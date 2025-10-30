@@ -2,9 +2,9 @@ from django.apps import AppConfig
 
 
 class ApartmentConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'apartment'
-    
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "apartment"
+
     def ready(self) -> None:
         pass
         # import apartment.signals

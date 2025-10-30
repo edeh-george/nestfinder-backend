@@ -10,37 +10,80 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('taggit', '0001_initial'),
+        ("taggit", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ApartmentImage',
+            name="ApartmentImage",
             fields=[
-                ('id', models.BigAutoField(primary_key=True, serialize=False)),
-                ('images', models.ImageField(upload_to=apartment.models.user_directory_path)),
+                ("id", models.BigAutoField(primary_key=True, serialize=False)),
+                (
+                    "images",
+                    models.ImageField(upload_to=apartment.models.user_directory_path),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='Apartment',
+            name="Apartment",
             fields=[
-                ('id', models.BigAutoField(primary_key=True, serialize=False)),
-                ('name', models.CharField(blank=True, max_length=255, null=True)),
-                ('apartment_type', models.CharField(choices=[('one_room', 'One room'), ('self_con', 'Self con'), ('room_and_parlour', 'A room and parlour')], default='one_room', max_length=50)),
-                ('description', models.TextField()),
-                ('price', models.PositiveIntegerField()),
-                ('location', models.CharField(choices=[('ODI', 'Odim'), ('ODE', 'Odenigwe'), ('BF', 'Behind Flat'), ('GH', 'Green House'), ('HT', 'Hilltop'), ('SQ', 'Staff Quarters')], default='HT', max_length=255)),
-                ('is_leased', models.BooleanField(default=False)),
-                ('created', models.DateTimeField(auto_now_add=True)),
-                ('modified', models.DateTimeField(auto_now=True)),
-                ('image', models.ImageField(blank=True, null=True, upload_to=apartment.models.user_directory_path)),
-                ('apartments', taggit.managers.TaggableManager(help_text='A comma-separated list of tags.', through='taggit.TaggedItem', to='taggit.Tag', verbose_name='Related Apartments')),
+                ("id", models.BigAutoField(primary_key=True, serialize=False)),
+                ("name", models.CharField(blank=True, max_length=255, null=True)),
+                (
+                    "apartment_type",
+                    models.CharField(
+                        choices=[
+                            ("one_room", "One room"),
+                            ("self_con", "Self con"),
+                            ("room_and_parlour", "A room and parlour"),
+                        ],
+                        default="one_room",
+                        max_length=50,
+                    ),
+                ),
+                ("description", models.TextField()),
+                ("price", models.PositiveIntegerField()),
+                (
+                    "location",
+                    models.CharField(
+                        choices=[
+                            ("ODI", "Odim"),
+                            ("ODE", "Odenigwe"),
+                            ("BF", "Behind Flat"),
+                            ("GH", "Green House"),
+                            ("HT", "Hilltop"),
+                            ("SQ", "Staff Quarters"),
+                        ],
+                        default="HT",
+                        max_length=255,
+                    ),
+                ),
+                ("is_leased", models.BooleanField(default=False)),
+                ("created", models.DateTimeField(auto_now_add=True)),
+                ("modified", models.DateTimeField(auto_now=True)),
+                (
+                    "image",
+                    models.ImageField(
+                        blank=True,
+                        null=True,
+                        upload_to=apartment.models.user_directory_path,
+                    ),
+                ),
+                (
+                    "apartments",
+                    taggit.managers.TaggableManager(
+                        help_text="A comma-separated list of tags.",
+                        through="taggit.TaggedItem",
+                        to="taggit.Tag",
+                        verbose_name="Related Apartments",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
     ]

@@ -1,10 +1,9 @@
 from rest_framework import serializers
 
 
-
-
 class MailSerializer(serializers.Serializer):
     pass
+
 
 class LandlordMailSerializer(serializers.Serializer):
     name = serializers.CharField()
