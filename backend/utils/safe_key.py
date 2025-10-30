@@ -97,6 +97,3 @@ def generate_safe_key():
         key_manager.key = key
         manager.last_access = datetime.now()
     return key
-
-
-generate_safe_key()

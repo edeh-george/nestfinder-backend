@@ -14,6 +14,6 @@ class Review(models.Model):
         Apartment, on_delete=models.CASCADE, related_name="apartment"
     )
     is_active = models.BooleanField(default=True)
-    likes = models.PositiveBigIntegerField(default="", null=True)
-    dislikes = models.PositiveBigIntegerField(default="", null=True)
+    likes = models.PositiveBigIntegerField(default=0, null=True)
+    dislikes = models.PositiveBigIntegerField(default=0, null=True)
     created = models.DateTimeField(auto_now_add=True)

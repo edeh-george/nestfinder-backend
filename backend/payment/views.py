@@ -11,7 +11,6 @@ from rest_framework.decorators import (
 )
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
-from userauth.authentication import CustomAuthentication
 
 from .models import Payment
 from .serializers import (
@@ -25,7 +24,6 @@ FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 
 class InitiatePayment(generics.GenericAPIView):
-    authentication_classes = [CustomAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = PaymentInitSerializer
 
@@ -63,7 +61,6 @@ class InitiatePayment(generics.GenericAPIView):
 
 
 class GetPaymentView(generics.RetrieveAPIView):
-    authentication_classes = [CustomAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = PaymentSerializer
 
@@ -73,7 +70,6 @@ class GetPaymentView(generics.RetrieveAPIView):
 
 
 class VerifyPayment(generics.GenericAPIView):
-    authentication_classes = [CustomAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = PaymentVerifySerializer
 
@@ -92,7 +88,6 @@ class VerifyPayment(generics.GenericAPIView):
 
 @api_view(["GET"])
 @permission_classes([IsAdminUser])
-@authentication_classes([CustomAuthentication])
 @csrf_exempt
 def list_transactions(request):
     url = "https://api.paystack.co/transaction"

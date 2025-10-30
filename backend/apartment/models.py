@@ -18,8 +18,6 @@ def user_directory_path(instance, filename):
 
 
 class UUidModelAbstract(models.Model):
-    # id = models.UUIDField(primary_key=True, auto_created=True,
-    #                       default=uuid.uuid4, unique=True)
     id = models.BigAutoField(primary_key=True)
 
     class Meta:

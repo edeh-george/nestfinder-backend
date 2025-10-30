@@ -1,7 +1,9 @@
 import json
 import os
+import random
 
 import django_filters
+from django.core.files import File
 from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework.backends import DjangoFilterBackend
@@ -12,7 +14,6 @@ from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_json_api.filters import OrderingFilter
-from userauth.authentication import CustomAuthentication
 from userauth.permissions import canModifyPermission
 
 from .filters import ApartmentFilterBackend, LocationFilterBackend
@@ -60,7 +61,6 @@ class ApartmentFilter(django_filters.FilterSet):
 # Modify the view such that it returns an error when the seach value is not found
 class ApartmentListGenerics(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
-    authentication_classes = [CustomAuthentication]
     pagination_class = ApartmentPagination
     filter_backends = [
         DjangoFilterBackend,
@@ -105,11 +105,6 @@ class ApartmentManageView(
 
     permission_classes = [canModifyPermission]
     serializer_class = ApartmentSerializer
-
-
-import random
-
-from django.core.files import File
 
 
 class BulkCreateApartmentView(generics.GenericAPIView):
