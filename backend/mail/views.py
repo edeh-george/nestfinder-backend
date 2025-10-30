@@ -46,7 +46,6 @@ def get_user(user_id: str):
 
 class sendAuthMail(APIView):
     serializer_class = MailSerializer
-    # authentication_classes = [CustomAuthentication]  
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
@@ -57,10 +56,10 @@ class sendAuthMail(APIView):
             }
             user = User.objects.get(email=data['email'])
             verification_token = default_token_generator.make_token(user)
-            encrypted_data = cipher.encrypt(force_bytes(user.pk)) 
+            encrypted_data = cipher.encrypt(force_bytes(user.pk))
             parsed_uri = request.build_absolute_uri()
-            url_scheme = parsed_uri.split("://")[0] 
-            current_domain = parsed_uri.split("://")[1].split("/")[0]  
+            url_scheme = parsed_uri.split("://")[0]
+            current_domain = parsed_uri.split("://")[1].split("/")[0]
             if data['mail_type'] == 'password_reset':
                 verification_link = f"{url_scheme}://{current_domain}/api/v1/password/reset/confirm/{verification_token}/{encrypted_data.decode()}"
             else:
@@ -69,7 +68,7 @@ class sendAuthMail(APIView):
                 f"{data['mail_type']}.html",
                 {'username': user.first_name, 'link': verification_link}
             )
-            plain_message = strip_tags(html_message)  
+            plain_message = strip_tags(html_message)
             subject = "Password Reset" if data['mail_type'] == 'password_reset' else "Verify your email"
             from_email, to = os.environ.get('EMAIL_HOST_USER'), user.email
             msg = EmailMultiAlternatives(subject, plain_message, from_email, [to])
@@ -84,7 +83,7 @@ class sendAuthMail(APIView):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({"message": "E-mail has been sent", "link": verification_link}, status=status.HTTP_200_OK)
-    
+
 
 
 class verifyAuthToken(APIView):
@@ -100,15 +99,15 @@ class verifyAuthToken(APIView):
             match = default_token_generator.check_token(user, data['token'])
             if match:
                 return Response({'email': user.email}, status=status.HTTP_200_OK)
-    
+
             return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
-    
+
         except (User.DoesNotExist) as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": "An unexpected error occurred",
                             "details": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
+
 
 class LandlordContactMail(APIView):
     permission_classes = [AllowAny]
@@ -124,8 +123,8 @@ class LandlordContactMail(APIView):
             html_message = render_to_string('landlord_contact.html',
                                             {'name': data['name'],
                                             'email': data['email'],
-                                            'message': data['message']})                      
-            plain_message = strip_tags(html_message) 
+                                            'message': data['message']})
+            plain_message = strip_tags(html_message)
             subject = f"Messae from {data['name']}"
             user = User.objects.get(email=data['email'])
             from_email, to = user.email, data.get('agentMail')
